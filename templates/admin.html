@@ -1,8 +1,255 @@
-{% extends "base.html" %}{% block title %}KMPE PLC | Admin Dashboard{% endblock %}{% block content %}<section class="admin"><div class="admin-head"><div><small>CONTROL PANEL</small><h1>KMPE PLC ADMIN</h1></div><a class="btn ghost" href="/admin/logout">Logout</a></div>
-<div class="admin-grid"><div class="panel"><h2>➕ Project</h2><form method="post" action="/admin/projects/add" enctype="multipart/form-data"><input name="title" placeholder="Project title" required><textarea name="description" placeholder="Description"></textarea><input name="image" type="file" accept="image/*"><button class="btn">Add Project</button></form></div>
-<div class="panel"><h2>📰 News</h2><form method="post" action="/admin/news/add" enctype="multipart/form-data"><input name="title" placeholder="News title" required><textarea name="content" placeholder="News content"></textarea><input name="image" type="file" accept="image/*"><button class="btn">Publish News</button></form></div>
-<div class="panel"><h2>💼 Vacancy</h2><form method="post" action="/admin/vacancies/add"><input name="title" placeholder="Position title" required><textarea name="description" placeholder="Job description"></textarea><input name="deadline" placeholder="Deadline"><button class="btn">Add Vacancy</button></form></div></div>
-<div class="panel"><h2>Projects</h2>{% for x in projects %}<div class="row"><span><b>{{x.title}}</b><br>{{x.description}}</span><form method="post" action="/admin/projects/delete/{{x.id}}"><button class="danger">Delete</button></form></div>{% else %}<p>No projects yet.</p>{% endfor %}</div>
-<div class="panel"><h2>News</h2>{% for x in news %}<div class="row"><span><b>{{x.title}}</b></span><form method="post" action="/admin/news/delete/{{x.id}}"><button class="danger">Delete</button></form></div>{% else %}<p>No news yet.</p>{% endfor %}</div>
-<div class="panel"><h2>Vacancies</h2>{% for x in vacancies %}<div class="row"><span><b>{{x.title}}</b> — {{x.deadline or 'Open'}}</span><form method="post" action="/admin/vacancies/delete/{{x.id}}"><button class="danger">Delete</button></form></div>{% else %}<p>No vacancies yet.</p>{% endfor %}</div>
-<div class="panel"><h2>Contact Messages</h2>{% for x in messages %}<div class="row"><span><b>{{x.name}}</b> · {{x.email or 'No email'}} · {{x.phone or 'No phone'}}<br>{{x.message}}</span><div>{% if not x.is_read %}<form method="post" action="/admin/messages/read/{{x.id}}"><button class="btn small">Read</button></form>{% endif %}<form method="post" action="/admin/messages/delete/{{x.id}}"><button class="danger">Delete</button></form></div></div>{% else %}<p>No messages yet.</p>{% endfor %}</div></section>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}
+KMPE PLC | Admin
+{% endblock %}
+
+
+{% block content %}
+
+<section class="admin">
+
+    <div class="adminhead">
+
+        <div>
+
+            <small>
+                CONTROL CENTER
+            </small>
+
+            <h1>
+                KMPE PLC Admin
+            </h1>
+
+        </div>
+
+        <a
+            class="btn"
+            href="/logout"
+        >
+            Logout
+        </a>
+
+    </div>
+
+
+    <div class="admin-grid">
+
+
+        <div class="adminbox">
+
+            <h2>
+                🏗️ Projects
+            </h2>
+
+            <form
+                method="post"
+                action="/admin/project"
+            >
+
+                <input
+                    name="title"
+                    placeholder="Project title"
+                    required
+                >
+
+                <textarea
+                    name="description"
+                    placeholder="Description"
+                ></textarea>
+
+                <button
+                    class="btn light"
+                    type="submit"
+                >
+                    Add Project
+                </button>
+
+            </form>
+
+
+            {% for p in projects %}
+
+            <div class="item">
+
+                <span>
+
+                    <b>
+                        {{ p.title }}
+                    </b>
+
+                    <small>
+                        {{ p.description }}
+                    </small>
+
+                </span>
+
+
+                <form
+                    method="post"
+                    action="/admin/project/{{ p.id }}/delete"
+                >
+
+                    <button
+                        class="delete"
+                        type="submit"
+                    >
+                        Delete
+                    </button>
+
+                </form>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+
+        <div class="adminbox">
+
+            <h2>
+                📰 News
+            </h2>
+
+            <form
+                method="post"
+                action="/admin/news"
+            >
+
+                <input
+                    name="title"
+                    placeholder="News title"
+                    required
+                >
+
+                <textarea
+                    name="content"
+                    placeholder="News content"
+                ></textarea>
+
+                <button
+                    class="btn light"
+                    type="submit"
+                >
+                    Add News
+                </button>
+
+            </form>
+
+
+            {% for n in news %}
+
+            <div class="item">
+
+                <span>
+
+                    <b>
+                        {{ n.title }}
+                    </b>
+
+                    <small>
+                        {{ n.content }}
+                    </small>
+
+                </span>
+
+
+                <form
+                    method="post"
+                    action="/admin/news/{{ n.id }}/delete"
+                >
+
+                    <button
+                        class="delete"
+                        type="submit"
+                    >
+                        Delete
+                    </button>
+
+                </form>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+
+        <div class="adminbox">
+
+            <h2>
+                👷 Vacancies
+            </h2>
+
+            <form
+                method="post"
+                action="/admin/vacancy"
+            >
+
+                <input
+                    name="title"
+                    placeholder="Position"
+                    required
+                >
+
+                <textarea
+                    name="description"
+                    placeholder="Description"
+                ></textarea>
+
+                <button
+                    class="btn light"
+                    type="submit"
+                >
+                    Add Vacancy
+                </button>
+
+            </form>
+
+
+            {% for v in vacancies %}
+
+            <div class="item">
+
+                <span>
+
+                    <b>
+                        {{ v.title }}
+                    </b>
+
+                    <small>
+                        {{ v.description }}
+                    </small>
+
+                </span>
+
+
+                <form
+                    method="post"
+                    action="/admin/vacancy/{{ v.id }}/delete"
+                >
+
+                    <button
+                        class="delete"
+                        type="submit"
+                    >
+                        Delete
+                    </button>
+
+                </form>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+
+    </div>
+
+</section>
+
+{% endblock %}
