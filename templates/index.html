@@ -1,8 +1,482 @@
-{% extends "base.html" %}{% block title %}KMPE PLC | Construction{% endblock %}{% block content %}
-<section id="home" class="hero"><div><small>KMPE PLC</small><h1>BUILDING <b>QUALITY.</b><br>FINISHING THE FUTURE.</h1><p>Fountain works, finishing works, and complete construction solutions delivered with precision.</p><a class="btn" href="#services">Explore Services</a> <a class="btn ghost" href="#contact">Contact Us</a></div><div class="hero-icon">🏗️</div></section>
-<section id="about" class="section"><h2>01 / ABOUT KMPE PLC</h2><div class="two"><div><p>KMPE PLC is a construction company focused on practical, high-quality construction solutions including fountain construction, finishing works, building works and other civil construction activities.</p><p>We combine skilled workmanship, careful planning, quality materials and project coordination to deliver durable results.</p></div><div class="panel"><b>01</b> Quality First<br><b>02</b> Skilled Work<br><b>03</b> Reliable Delivery</div></div></section>
-<section id="services" class="section dark"><h2>02 / OUR SERVICES</h2><div class="grid">{% for x in [('⛲','Fountain Works','Construction and finishing of decorative and functional fountain works.'),('🏢','Construction Works','General civil construction and building works.'),('✨','Finishing Works','Quality floors, walls, ceilings and architectural details.'),('🧱','Civil Works','Concrete, masonry, external and supporting works.')] %}<article class="card"><i>{{x[0]}}</i><h3>{{x[1]}}</h3><p>{{x[2]}}</p></article>{% endfor %}</div></section>
-<section id="projects" class="section"><h2>03 / PROJECTS & GALLERY</h2><div class="gallery">{% for x in projects %}<article class="card">{% if x.image %}<img src="{{url_for('uploads',filename=x.image)}}">{% else %}<div class="placeholder">🏗️</div>{% endif %}<h3>{{x.title}}</h3><p>{{x.description}}</p></article>{% else %}<div class="empty">Projects and gallery images will appear here.</div>{% endfor %}</div></section>
-<section id="news" class="section dark"><h2>04 / LATEST NEWS</h2><div class="gallery">{% for x in news %}<article class="card">{% if x.image %}<img src="{{url_for('uploads',filename=x.image)}}">{% endif %}<small>{{x.created_at[:10]}}</small><h3>{{x.title}}</h3><p>{{x.content}}</p></article>{% else %}<div class="empty">Company news and announcements will appear here.</div>{% endfor %}</div></section>
-<section id="careers" class="section"><h2>05 / VACANCIES & CAREERS</h2>{% for x in vacancies %}<article class="panel vacancy"><h3>{{x.title}}</h3><p>{{x.description}}</p><small>Deadline: {{x.deadline or 'Open'}}</small></article>{% else %}<div class="empty">Open positions will be posted here.</div>{% endfor %}</section>
-<section id="contact" class="section contact"><h2>06 / CONTACT US</h2><div class="two"><div><h3>Let's build something strong.</h3><p>Send us your project requirements and our team can get in touch.</p><p>📍 Ethiopia</p><p>📞 Contact KMPE PLC</p><p>✉️ info@kmpeplc.com</p></div><form method="post" action="/contact"><input name="name" placeholder="Your name" required><input name="email" type="email" placeholder="Email"><input name="phone" placeholder="Phone"><textarea name="message" rows="6" placeholder="Your message" required></textarea><button class="btn">Send Message</button></form></div></section>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}
+KMPE PLC | Construction & Engineering
+{% endblock %}
+
+
+{% block content %}
+
+
+<section id="home" class="hero">
+
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+
+    <div class="hero-inner">
+
+        <div class="tag">
+            🏗️ KMPE PLC
+        </div>
+
+        <h1>
+
+            We Build.
+
+            <br>
+
+            <span>
+                You Experience.
+            </span>
+
+        </h1>
+
+        <p>
+            Professional fountain works,
+            finishing works and complete
+            construction solutions.
+        </p>
+
+        <div class="actions">
+
+            <a
+                class="btn light"
+                href="#services"
+            >
+                Explore Services
+            </a>
+
+            <a
+                class="btn"
+                href="#contact"
+            >
+                Contact Us
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<section id="about" class="section">
+
+    <div class="heading">
+
+        <small>
+            01 / ABOUT
+        </small>
+
+        <h2>
+            Built on Quality & Craft
+        </h2>
+
+    </div>
+
+
+    <p class="intro">
+
+        KMPE PLC delivers construction
+        services with a focus on quality
+        workmanship, practical engineering
+        and reliable project execution.
+
+    </p>
+
+
+    <div class="grid three">
+
+
+        <div class="card">
+
+            <i>🎯</i>
+
+            <h3>
+                Quality
+            </h3>
+
+            <p>
+                Careful workmanship and
+                durable results.
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <i>⚙️</i>
+
+            <h3>
+                Precision
+            </h3>
+
+            <p>
+                Professional coordination
+                from planning to completion.
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <i>🤝</i>
+
+            <h3>
+                Commitment
+            </h3>
+
+            <p>
+                Working closely with clients
+                and project partners.
+            </p>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<section id="services" class="section dark">
+
+    <div class="heading">
+
+        <small>
+            02 / SERVICES
+        </small>
+
+        <h2>
+            What We Do
+        </h2>
+
+    </div>
+
+
+    <div class="grid three">
+
+
+        <div class="service">
+
+            <i>⛲</i>
+
+            <h3>
+                Fountain Works
+            </h3>
+
+            <p>
+                Construction and finishing
+                of decorative and functional fountains.
+            </p>
+
+        </div>
+
+
+        <div class="service">
+
+            <i>✨</i>
+
+            <h3>
+                Finishing Works
+            </h3>
+
+            <p>
+                Interior, exterior,
+                architectural and fit-out finishing.
+            </p>
+
+        </div>
+
+
+        <div class="service">
+
+            <i>🏗️</i>
+
+            <h3>
+                Construction
+            </h3>
+
+            <p>
+                General building and
+                civil construction works.
+            </p>
+
+        </div>
+
+
+        <div class="service">
+
+            <i>🧱</i>
+
+            <h3>
+                Civil Works
+            </h3>
+
+            <p>
+                Concrete, masonry, paving,
+                drainage and site works.
+            </p>
+
+        </div>
+
+
+        <div class="service">
+
+            <i>🔨</i>
+
+            <h3>
+                Renovation
+            </h3>
+
+            <p>
+                Upgrading and renovation
+                of existing facilities.
+            </p>
+
+        </div>
+
+
+        <div class="service">
+
+            <i>📐</i>
+
+            <h3>
+                Project Support
+            </h3>
+
+            <p>
+                Construction coordination
+                and engineering support.
+            </p>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<section id="projects" class="section">
+
+    <div class="heading">
+
+        <small>
+            03 / PROJECTS
+        </small>
+
+        <h2>
+            Our Projects
+        </h2>
+
+    </div>
+
+
+    <div class="grid three">
+
+
+        {% for p in projects %}
+
+        <article class="project">
+
+            <div class="visual">
+                🏗️
+            </div>
+
+            <div class="pad">
+
+                <h3>
+                    {{ p.title }}
+                </h3>
+
+                <p>
+                    {{ p.description }}
+                </p>
+
+            </div>
+
+        </article>
+
+        {% endfor %}
+
+
+    </div>
+
+</section>
+
+
+
+<section id="news" class="section dark">
+
+    <div class="heading">
+
+        <small>
+            04 / NEWS
+        </small>
+
+        <h2>
+            Latest News
+        </h2>
+
+    </div>
+
+
+    <div class="grid three">
+
+
+        {% for n in news %}
+
+        <article class="card">
+
+            <i>
+                📰
+            </i>
+
+            <h3>
+                {{ n.title }}
+            </h3>
+
+            <p>
+                {{ n.content }}
+            </p>
+
+        </article>
+
+        {% endfor %}
+
+
+    </div>
+
+</section>
+
+
+
+<section id="careers" class="section">
+
+    <div class="heading">
+
+        <small>
+            05 / CAREERS
+        </small>
+
+        <h2>
+            Vacancies
+        </h2>
+
+    </div>
+
+
+    {% if vacancies %}
+
+    <div class="grid three">
+
+        {% for v in vacancies %}
+
+        <article class="card">
+
+            <i>
+                👷
+            </i>
+
+            <h3>
+                {{ v.title }}
+            </h3>
+
+            <p>
+                {{ v.description }}
+            </p>
+
+        </article>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <p class="intro">
+        No vacancies are currently posted.
+    </p>
+
+    {% endif %}
+
+</section>
+
+
+
+<section id="contact" class="section contact">
+
+    <div class="heading">
+
+        <small>
+            06 / CONTACT
+        </small>
+
+        <h2>
+            Let's Build Together
+        </h2>
+
+    </div>
+
+
+    <div class="contact-grid">
+
+
+        <div>
+
+            <i>📍</i>
+
+            <h3>
+                KMPE PLC
+            </h3>
+
+            <p>
+                Construction & Engineering Services
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <i>📞</i>
+
+            <h3>
+                Contact
+            </h3>
+
+            <p>
+                Contact the KMPE PLC office
+                for project inquiries.
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <i>✉️</i>
+
+            <h3>
+                Email
+            </h3>
+
+            <p>
+                info@kmpeplc.com
+            </p>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+{% endblock %}
