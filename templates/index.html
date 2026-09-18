@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}KMPE PLC | Construction, Fountain & Finishing Works{% endblock %}
+
+{% block content %}
+<header class="site-header" id="top">
+  <div class="container nav-wrap">
+    <a class="brand" href="#top" aria-label="KMPE PLC home">
+      <span class="brand-mark">K</span>
+      <span><strong>KMPE</strong><small>PLC</small></span>
+    </a>
+    <button class="menu-toggle" aria-label="Open menu">☰</button>
+    <nav class="nav-links">
+      <a href="#about">About</a>
+      <a href="#services">Services</a>
+      <a href="#projects">Projects</a>
+      <a href="#news">News</a>
+      <a href="#vacancies">Vacancies</a>
+      <a href="#contact" class="nav-contact">Contact Us</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero section-pad">
+  <div class="hero-grid container">
+    <div class="hero-copy reveal">
+      <div class="eyebrow"><span></span> KMPE PLC · CONSTRUCTION & FINISHING</div>
+      <h1>Building <em>spaces</em><br>that leave a mark.</h1>
+      <p class="hero-text">Fountain works, finishing works and construction solutions delivered with precision, craftsmanship and a modern vision.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#services">Explore Services <span>↗</span></a>
+        <a class="btn btn-ghost" href="#projects">View Projects</a>
+      </div>
+      <div class="hero-stats">
+        <div><strong data-count="1">01</strong><span>Construction<br>Partner</span></div>
+        <div><strong data-count="3">03</strong><span>Core Service<br>Areas</span></div>
+        <div><strong>24/7</strong><span>Commitment to<br>Quality</span></div>
+      </div>
+    </div>
+    <div class="hero-visual reveal reveal-delay">
+      <div class="hero-frame">
+        <img src="{{ url_for('static', filename='images/hero.svg') }}" alt="KMPE PLC construction visual">
+        <div class="hero-badge badge-one">🏗️ <span>Built with purpose</span></div>
+        <div class="hero-badge badge-two">💧 <span>Designed to impress</span></div>
+        <div class="scan-line"></div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-cue"><span></span> SCROLL TO EXPLORE</div>
+</section>
+
+<section class="marquee"><div class="marquee-track">FOUNTAIN WORKS ✦ FINISHING WORKS ✦ CONSTRUCTION ✦ CIVIL WORKS ✦ QUALITY ✦ CRAFTSMANSHIP ✦</div></section>
+
+<section id="about" class="section-pad about-section">
+  <div class="container two-col">
+    <div class="section-heading reveal">
+      <div class="eyebrow"><span></span> ABOUT KMPE PLC</div>
+      <h2>Craftsmanship with a <em>construction mindset.</em></h2>
+    </div>
+    <div class="about-copy reveal reveal-delay">
+      <p>KMPE PLC is a construction company focused on practical, high-quality execution across fountain works, finishing works and wider construction activities.</p>
+      <p>Our website is designed to grow with the company — showcasing completed work, sharing company news, publishing career opportunities and making it easy for clients to contact the team.</p>
+      <div class="signature-line"><span>KMPE PLC</span><span>QUALITY · DETAIL · DELIVERY</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="services" class="section-pad services-section">
+  <div class="container">
+    <div class="section-heading centered reveal">
+      <div class="eyebrow"><span></span> WHAT WE DO</div>
+      <h2>Services built around <em>real work.</em></h2>
+      <p>From water features to final finishes and construction works, KMPE PLC can present each capability clearly to clients.</p>
+    </div>
+    <div class="service-grid">
+      <article class="service-card reveal"><div class="service-number">01</div><div class="service-icon">💧</div><h3>Fountain Works</h3><p>Fountain construction, water-feature works and finishing details designed for attractive public and private spaces.</p><a href="#contact">Discuss a project →</a></article>
+      <article class="service-card reveal reveal-delay"><div class="service-number">02</div><div class="service-icon">🎨</div><h3>Finishing Works</h3><p>Interior and exterior finishing activities with attention to clean workmanship, surfaces, details and presentation.</p><a href="#contact">Discuss a project →</a></article>
+      <article class="service-card reveal reveal-delay-2"><div class="service-number">03</div><div class="service-icon">🏗️</div><h3>Construction Works</h3><p>General construction and civil works delivered with organized execution, coordination and quality control.</p><a href="#contact">Discuss a project →</a></article>
+      <article class="service-card reveal"><div class="service-number">04</div><div class="service-icon">🧱</div><h3>Special Works</h3><p>Additional construction activities can be showcased here as KMPE PLC expands its portfolio and capabilities.</p><a href="#contact">Talk to KMPE PLC →</a></article>
+    </div>
+  </div>
+</section>
+
+<section id="projects" class="section-pad projects-section">
+  <div class="container">
+    <div class="section-heading split reveal">
+      <div><div class="eyebrow"><span></span> PROJECTS</div><h2>Work worth <em>showing.</em></h2></div>
+      <p>New projects uploaded from the private admin panel automatically appear here.</p>
+    </div>
+    <div class="project-grid">
+      {% if projects %}
+        {% for project in projects %}
+        <article class="project-card reveal">
+          <div class="project-image">
+            {% if project.image %}<img src="{{ url_for('uploaded_file', filename=project.image) }}" alt="{{ project.title }}">{% else %}<img src="{{ url_for('static', filename='images/construction.svg') }}" alt="KMPE PLC project">{% endif %}
+            <span>{{ project.category or 'Construction' }}</span>
+          </div>
+          <div class="project-info"><h3>{{ project.title }}</h3><p>{{ project.description or 'KMPE PLC construction project.' }}</p></div>
+        </article>
+        {% endfor %}
+      {% else %}
+        <article class="project-card reveal"><div class="project-image"><img src="{{ url_for('static', filename='images/fountain.svg') }}" alt="Fountain works"><span>Fountain Works</span></div><div class="project-info"><h3>Fountain Works</h3><p>Your first uploaded KMPE PLC project will appear here.</p></div></article>
+        <article class="project-card reveal reveal-delay"><div class="project-image"><img src="{{ url_for('static', filename='images/finishing.svg') }}" alt="Finishing works"><span>Finishing</span></div><div class="project-info"><h3>Finishing Works</h3><p>Add real project photos from the admin panel.</p></div></article>
+        <article class="project-card reveal reveal-delay-2"><div class="project-image"><img src="{{ url_for('static', filename='images/construction.svg') }}" alt="Construction works"><span>Construction</span></div><div class="project-info"><h3>Construction Works</h3><p>Build the KMPE PLC portfolio as projects are completed.</p></div></article>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section id="news" class="section-pad news-section">
+  <div class="container">
+    <div class="section-heading split reveal"><div><div class="eyebrow"><span></span> COMPANY NEWS</div><h2>What is <em>happening.</em></h2></div><p>Publish company updates, project milestones, announcements and other news from the admin panel.</p></div>
+    <div class="news-grid">
+      {% if news %}
+        {% for item in news %}
+        <article class="news-card reveal">
+          <div class="news-image">{% if item.image %}<img src="{{ url_for('uploaded_file', filename=item.image) }}" alt="{{ item.title }}">{% else %}<div class="news-placeholder">KMPE<br>PLC</div>{% endif %}</div>
+          <div class="news-body"><div class="date">{{ item.created_at[:10] }}</div><h3>{{ item.title }}</h3><p>{{ item.content[:180] }}{% if item.content|length > 180 %}…{% endif %}</p></div>
+        </article>
+        {% endfor %}
+      {% else %}
+        <article class="news-card reveal"><div class="news-image"><div class="news-placeholder">KMPE<br>PLC</div></div><div class="news-body"><div class="date">LATEST</div><h3>Your company news will appear here.</h3><p>Use the private admin panel to publish announcements and project updates.</p></div></article>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section id="vacancies" class="section-pad vacancies-section">
+  <div class="container">
+    <div class="section-heading centered reveal"><div class="eyebrow"><span></span> CAREERS</div><h2>Build your career with <em>KMPE PLC.</em></h2><p>Open positions published by the administrator will automatically be displayed here.</p></div>
+    <div class="vacancy-list">
+      {% if vacancies %}
+        {% for vacancy in vacancies %}
+        <article class="vacancy reveal"><div><span class="vacancy-tag">OPEN POSITION</span><h3>{{ vacancy.title }}</h3><p>{{ vacancy.description }}</p><div class="vacancy-meta"><span>📍 {{ vacancy.location or 'Ethiopia' }}</span><span>💼 {{ vacancy.employment_type or 'Full Time' }}</span>{% if vacancy.closing_date %}<span>⏳ Closes {{ vacancy.closing_date }}</span>{% endif %}</div></div><div class="vacancy-requirements"><strong>Requirements</strong><p>{{ vacancy.requirements or 'See vacancy description.' }}</p></div></article>
+        {% endfor %}
+      {% else %}
+        <article class="vacancy empty-vacancy reveal"><div><span class="vacancy-tag">CAREERS</span><h3>No current vacancies</h3><p>New opportunities will be posted here when available.</p></div><div class="vacancy-icon">👷</div></article>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="section-pad contact-section">
+  <div class="container contact-grid">
+    <div class="contact-copy reveal"><div class="eyebrow"><span></span> CONTACT KMPE PLC</div><h2>Let's build something <em>remarkable.</em></h2><p>Tell us about your construction, fountain or finishing project. Replace the contact details below with KMPE PLC's official information when ready.</p><div class="contact-details"><div><span>📍</span><p><strong>Location</strong><br>Ethiopia</p></div><div><span>✉️</span><p><strong>Email</strong><br>info@kmpeplc.com</p></div><div><span>☎️</span><p><strong>Phone</strong><br>+251 XXX XXX XXX</p></div></div></div>
+    <form class="contact-form reveal reveal-delay" action="{{ url_for('contact') }}" method="post"><div class="form-row"><label>Name<input name="name" required placeholder="Your name"></label><label>Phone<input name="phone" placeholder="Your phone"></label></div><label>Email<input type="email" name="email" placeholder="you@example.com"></label><label>Message<textarea name="message" required rows="6" placeholder="Tell us about your project..."></textarea></label><button class="btn btn-primary" type="submit">Send Message <span>↗</span></button></form>
+  </div>
+</section>
+</main>
+
+<footer class="footer"><div class="container footer-grid"><div><a class="brand" href="#top"><span class="brand-mark">K</span><span><strong>KMPE</strong><small>PLC</small></span></a><p>Construction · Fountain Works · Finishing Works</p></div><div class="footer-links"><a href="#about">About</a><a href="#services">Services</a><a href="#projects">Projects</a><a href="#news">News</a><a href="#vacancies">Vacancies</a><a href="#contact">Contact</a></div></div><div class="container footer-bottom"><span>© {{ current_year }} KMPE PLC. All rights reserved.</span><span>Designed for a modern construction company.</span></div></footer>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}<div class="toast-stack">{% for category, message in messages %}<div class="toast {{ category }}">{{ message }}<button onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}
+{% endwith %}
+{% endblock %}
