@@ -1,48 +1,8 @@
-{% extends "base.html" %}
-{% block title %}KMPE PLC | Admin Dashboard{% endblock %}
-{% block content %}
-<div class="admin-shell">
-  <aside class="admin-sidebar">
-    <a class="brand" href="/"><span class="brand-mark">K</span><span><strong>KMPE</strong><small>PLC</small></span></a>
-    <div class="admin-user"><span class="avatar">N</span><div><strong>{{ session.get('admin_username', 'Admin') }}</strong><small>Administrator</small></div></div>
-    <nav><a href="#overview">▦ <span>Overview</span></a><a href="#projects-admin">🏗️ <span>Projects</span></a><a href="#news-admin">📰 <span>News</span></a><a href="#vacancies-admin">👷 <span>Vacancies</span></a><a href="#messages-admin">✉️ <span>Messages {% if unread_messages %}<b class="nav-count">{{ unread_messages }}</b>{% endif %}</span></a></nav>
-    <a class="logout" href="{{ url_for('admin_logout') }}">↪ Logout</a>
-  </aside>
-
-  <main class="admin-main">
-    <div class="admin-topbar"><div><div class="eyebrow"><span></span> KMPE PLC CONTROL CENTER</div><h1>Admin Dashboard</h1></div><a class="view-site" href="/" target="_blank">View Website ↗</a></div>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="admin-alerts">{% for category, message in messages %}<div class="toast {{ category }}">{{ message }}<button onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}{% endwith %}
-
-    <section id="overview" class="admin-stats">
-      <div class="stat-card"><span>🏗️</span><strong>{{ projects|length }}</strong><small>Projects</small></div>
-      <div class="stat-card"><span>📰</span><strong>{{ news|length }}</strong><small>News Posts</small></div>
-      <div class="stat-card"><span>👷</span><strong>{{ vacancies|length }}</strong><small>Vacancies</small></div>
-      <div class="stat-card"><span>✉️</span><strong>{{ unread_messages }}</strong><small>Unread Messages</small></div>
-    </section>
-
-    <section id="projects-admin" class="admin-section">
-      <div class="admin-section-title"><div><span class="section-kicker">CONTENT</span><h2>Projects & Gallery</h2></div></div>
-      <div class="admin-form-card"><h3>Add New Project</h3><form method="post" action="{{ url_for('add_project') }}" enctype="multipart/form-data"><div class="form-row"><label>Project title<input name="title" required placeholder="e.g. Fountain Development Project"></label><label>Category<select name="category"><option>Fountain Works</option><option>Finishing Works</option><option>Construction Works</option><option>Civil Works</option><option>Special Works</option></select></label></div><label>Description<textarea name="description" rows="4" placeholder="Describe the project..."></textarea></label><label class="file-input">Project image<input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif"></label><button class="btn btn-primary" type="submit">Add Project +</button></form></div>
-      <div class="admin-items">{% for item in projects %}<div class="admin-item"><div class="admin-thumb">{% if item.image %}<img src="{{ url_for('uploaded_file', filename=item.image) }}" alt="">{% else %}<img src="{{ url_for('static', filename='images/construction.svg') }}" alt="">{% endif %}</div><div class="admin-item-copy"><strong>{{ item.title }}</strong><span>{{ item.category }}</span><p>{{ item.description }}</p></div><form method="post" action="{{ url_for('delete_project', project_id=item.id) }}" onsubmit="return confirm('Delete this project?')"><button class="delete-btn" type="submit">Delete</button></form></div>{% else %}<p class="empty-admin">No projects yet.</p>{% endfor %}</div>
-    </section>
-
-    <section id="news-admin" class="admin-section">
-      <div class="admin-section-title"><div><span class="section-kicker">PUBLISH</span><h2>Company News</h2></div></div>
-      <div class="admin-form-card"><h3>Publish News</h3><form method="post" action="{{ url_for('add_news') }}" enctype="multipart/form-data"><label>News title<input name="title" required placeholder="News headline"></label><label>Content<textarea name="content" rows="5" placeholder="Write your company news..."></textarea></label><label class="file-input">News image<input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif"></label><label class="check"><input type="checkbox" name="published" checked> Publish immediately</label><button class="btn btn-primary" type="submit">Publish News +</button></form></div>
-      <div class="admin-items">{% for item in news %}<div class="admin-item"><div class="admin-thumb">{% if item.image %}<img src="{{ url_for('uploaded_file', filename=item.image) }}" alt="">{% else %}<div class="thumb-text">NEWS</div>{% endif %}</div><div class="admin-item-copy"><strong>{{ item.title }}</strong><span>{{ item.created_at }}</span><p>{{ item.content }}</p></div><form method="post" action="{{ url_for('delete_news', news_id=item.id) }}" onsubmit="return confirm('Delete this news post?')"><button class="delete-btn" type="submit">Delete</button></form></div>{% else %}<p class="empty-admin">No news posts yet.</p>{% endfor %}</div>
-    </section>
-
-    <section id="vacancies-admin" class="admin-section">
-      <div class="admin-section-title"><div><span class="section-kicker">CAREERS</span><h2>Vacancies</h2></div></div>
-      <div class="admin-form-card"><h3>Add Vacancy</h3><form method="post" action="{{ url_for('add_vacancy') }}"><div class="form-row"><label>Position title<input name="title" required placeholder="e.g. Site Engineer"></label><label>Location<input name="location" placeholder="e.g. Addis Ababa"></label></div><div class="form-row"><label>Employment type<input name="employment_type" placeholder="Full Time"></label><label>Closing date<input type="date" name="closing_date"></label></div><label>Description<textarea name="description" rows="4" placeholder="Job description..."></textarea></label><label>Requirements<textarea name="requirements" rows="5" placeholder="Qualifications and experience..."></textarea></label><label class="check"><input type="checkbox" name="published" checked> Publish vacancy</label><button class="btn btn-primary" type="submit">Add Vacancy +</button></form></div>
-      <div class="admin-items">{% for item in vacancies %}<div class="admin-item no-thumb"><div class="admin-item-copy"><strong>{{ item.title }}</strong><span>{{ item.location }} · {{ item.employment_type }}</span><p>{{ item.description }}</p></div><form method="post" action="{{ url_for('delete_vacancy', vacancy_id=item.id) }}" onsubmit="return confirm('Delete this vacancy?')"><button class="delete-btn" type="submit">Delete</button></form></div>{% else %}<p class="empty-admin">No vacancies yet.</p>{% endfor %}</div>
-    </section>
-
-    <section id="messages-admin" class="admin-section">
-      <div class="admin-section-title"><div><span class="section-kicker">INBOX</span><h2>Contact Messages</h2></div></div>
-      <div class="message-list">{% for item in messages %}<article class="message-card {% if not item.is_read %}unread{% endif %}"><div class="message-top"><strong>{{ item.name }}</strong><span>{{ item.created_at }}</span></div><div class="message-contact">{{ item.email or 'No email' }} · {{ item.phone or 'No phone' }}</div><p>{{ item.message }}</p><div class="message-actions">{% if not item.is_read %}<form method="post" action="{{ url_for('mark_message_read', message_id=item.id) }}"><button class="small-btn" type="submit">Mark as read</button></form>{% endif %}<form method="post" action="{{ url_for('delete_message', message_id=item.id) }}" onsubmit="return confirm('Delete this message?')"><button class="delete-btn" type="submit">Delete</button></form></div></article>{% else %}<p class="empty-admin">No contact messages yet.</p>{% endfor %}</div>
-    </section>
-  </main>
-</div>
-{% endblock %}
+{% extends "base.html" %}{% block title %}KMPE PLC | Admin Dashboard{% endblock %}{% block content %}<section class="admin"><div class="admin-head"><div><small>CONTROL PANEL</small><h1>KMPE PLC ADMIN</h1></div><a class="btn ghost" href="/admin/logout">Logout</a></div>
+<div class="admin-grid"><div class="panel"><h2>➕ Project</h2><form method="post" action="/admin/projects/add" enctype="multipart/form-data"><input name="title" placeholder="Project title" required><textarea name="description" placeholder="Description"></textarea><input name="image" type="file" accept="image/*"><button class="btn">Add Project</button></form></div>
+<div class="panel"><h2>📰 News</h2><form method="post" action="/admin/news/add" enctype="multipart/form-data"><input name="title" placeholder="News title" required><textarea name="content" placeholder="News content"></textarea><input name="image" type="file" accept="image/*"><button class="btn">Publish News</button></form></div>
+<div class="panel"><h2>💼 Vacancy</h2><form method="post" action="/admin/vacancies/add"><input name="title" placeholder="Position title" required><textarea name="description" placeholder="Job description"></textarea><input name="deadline" placeholder="Deadline"><button class="btn">Add Vacancy</button></form></div></div>
+<div class="panel"><h2>Projects</h2>{% for x in projects %}<div class="row"><span><b>{{x.title}}</b><br>{{x.description}}</span><form method="post" action="/admin/projects/delete/{{x.id}}"><button class="danger">Delete</button></form></div>{% else %}<p>No projects yet.</p>{% endfor %}</div>
+<div class="panel"><h2>News</h2>{% for x in news %}<div class="row"><span><b>{{x.title}}</b></span><form method="post" action="/admin/news/delete/{{x.id}}"><button class="danger">Delete</button></form></div>{% else %}<p>No news yet.</p>{% endfor %}</div>
+<div class="panel"><h2>Vacancies</h2>{% for x in vacancies %}<div class="row"><span><b>{{x.title}}</b> — {{x.deadline or 'Open'}}</span><form method="post" action="/admin/vacancies/delete/{{x.id}}"><button class="danger">Delete</button></form></div>{% else %}<p>No vacancies yet.</p>{% endfor %}</div>
+<div class="panel"><h2>Contact Messages</h2>{% for x in messages %}<div class="row"><span><b>{{x.name}}</b> · {{x.email or 'No email'}} · {{x.phone or 'No phone'}}<br>{{x.message}}</span><div>{% if not x.is_read %}<form method="post" action="/admin/messages/read/{{x.id}}"><button class="btn small">Read</button></form>{% endif %}<form method="post" action="/admin/messages/delete/{{x.id}}"><button class="danger">Delete</button></form></div></div>{% else %}<p>No messages yet.</p>{% endfor %}</div></section>{% endblock %}
