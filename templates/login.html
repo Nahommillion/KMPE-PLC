@@ -1,1 +1,68 @@
-{% extends "base.html" %}{% block title %}KMPE PLC | Admin{% endblock %}{% block content %}<section class="login"><div class="panel"><div class="hero-icon">🔐</div><h1>Admin Login</h1><form method="post"><input name="username" placeholder="Username" required><input name="password" type="password" placeholder="Password" required><button class="btn">Sign In</button></form></div></section>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}
+KMPE PLC | Admin Login
+{% endblock %}
+
+
+{% block content %}
+
+<section class="login">
+
+    <div class="loginbox">
+
+        <div class="big">
+            🔐
+        </div>
+
+        <h1>
+            Admin Login
+        </h1>
+
+        <p>
+            KMPE PLC Website Management
+        </p>
+
+
+        {% with messages = get_flashed_messages() %}
+
+            {% for message in messages %}
+
+                <div class="alert">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endwith %}
+
+
+        <form method="post">
+
+            <input
+                name="username"
+                placeholder="Username"
+                required
+            >
+
+            <input
+                name="password"
+                type="password"
+                placeholder="Password"
+                required
+            >
+
+            <button
+                class="btn light"
+                type="submit"
+            >
+                Sign In
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+{% endblock %}
