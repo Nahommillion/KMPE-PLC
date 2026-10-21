@@ -161,6 +161,11 @@ def home():
     return render_template("index.html", projects=projects, news=news, vacancies=vacancies, settings=settings)
 
 
+# Compatibility endpoint: some existing templates refer to url_for("index").
+# Keep the canonical home endpoint while allowing both endpoint names.
+app.add_url_rule("/", endpoint="index", view_func=home)
+
+
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_DIR, filename)
@@ -182,6 +187,7 @@ def contact():
     return redirect(url_for("home") + "#contact")
 
 
+@app.route("/login", methods=["GET", "POST"])
 @app.route("/admin", methods=["GET", "POST"])
 def admin_login():
     if session.get("admin_logged_in"):

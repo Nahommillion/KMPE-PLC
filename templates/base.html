@@ -1,84 +1,24 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>
-        {% block title %}
-        KMPE PLC
-        {% endblock %}
-    </title>
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='css/style.css') }}"
-    >
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="KPME PLC - Fountain works, finishing works and construction services.">
+  <title>{% block title %}KPME PLC | Construction & Finishing{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
 </head>
-
 <body>
+  <div class="noise"></div>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
 
-<header class="navbar">
+  {% block content %}{% endblock %}
 
-    <a
-        class="brand"
-        href="{{ url_for('home') }}"
-    >
-        KMPE <span>PLC</span>
-    </a>
-
-    <nav>
-
-        <a href="/#home">Home</a>
-
-        <a href="/#about">About</a>
-
-        <a href="/#services">Services</a>
-
-        <a href="/#projects">Projects</a>
-
-        <a href="/#news">News</a>
-
-        <a href="/#careers">Vacancies</a>
-
-        <a href="/#contact">Contact</a>
-
-    </nav>
-
-</header>
-
-
-{% block content %}
-
-{% endblock %}
-
-
-<footer>
-
-    <strong>KMPE PLC</strong>
-
-    <span>
-        Construction • Fountain • Finishing Works
-    </span>
-
-    <span>
-        © 2026 KMPE PLC
-    </span>
-
-</footer>
-
-
-<script
-    src="{{ url_for('static', filename='js/app.js') }}"
-></script>
-
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
 </body>
-
 </html>
