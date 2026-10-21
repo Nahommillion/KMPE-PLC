@@ -1,393 +1,379 @@
 import os
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+import uuid
+from datetime import datetime
+from functools import wraps
 
-# --------------------------------------------------
-# KMPE PLC WEBSITE
-# --------------------------------------------------
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# IMPORTANT:
-# We DO NOT use DATA_DIR=/var/data.
-# Everything is stored inside the normal application folder.
-DATA_DIR = os.path.join(BASE_DIR, "data")
-
-os.makedirs(DATA_DIR, exist_ok=True)
-
-DATABASE = os.path.join(DATA_DIR, "kmpe.db")
+from flask import Flask, flash, g, redirect, render_template, request, send_from_directory, session, url_for
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.environ.get("DATA_DIR", os.path.join(BASE_DIR, "data"))
+UPLOAD_DIR = os.path.join(DATA_DIR, "uploads")
+DATABASE = os.path.join(DATA_DIR, "kmpe.db")
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-app.secret_key = os.environ.get(
-    "SECRET_KEY",
-    "kmpe-development-secret"
-)
+app.secret_key = os.environ.get("SECRET_KEY", "CHANGE_THIS_SECRET_KEY")
+app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
+ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
 
-ADMIN_USERNAME = os.environ.get(
-    "ADMIN_USERNAME",
-    "admin"
-)
-
-ADMIN_PASSWORD = os.environ.get(
-    "ADMIN_PASSWORD",
-    "admin123"
-)
-
-
-# --------------------------------------------------
-# DATABASE
-# --------------------------------------------------
 
 def get_db():
-    connection = sqlite3.connect(DATABASE)
-    connection.row_factory = sqlite3.Row
-    return connection
+    if "db" not in g:
+        g.db = sqlite3.connect(DATABASE, timeout=30)
+        g.db.row_factory = sqlite3.Row
+        g.db.execute("PRAGMA journal_mode=WAL")
+        g.db.execute("PRAGMA foreign_keys=ON")
+    return g.db
 
 
-def init_db():
+@app.teardown_appcontext
+def close_db(exception=None):
+    db = g.pop("db", None)
+    if db is not None:
+        db.close()
 
-    connection = get_db()
 
-    connection.executescript(
-        """
+def init_database():
+    db = sqlite3.connect(DATABASE, timeout=30)
+    db.execute("PRAGMA journal_mode=WAL")
+    db.executescript("""
         CREATE TABLE IF NOT EXISTS projects (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            description TEXT NOT NULL DEFAULT ''
+            category TEXT,
+            description TEXT,
+            image TEXT,
+            created_at TEXT NOT NULL
         );
-
         CREATE TABLE IF NOT EXISTS news (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            content TEXT NOT NULL DEFAULT ''
+            content TEXT,
+            image TEXT,
+            published INTEGER DEFAULT 1,
+            created_at TEXT NOT NULL
         );
-
         CREATE TABLE IF NOT EXISTS vacancies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            description TEXT NOT NULL DEFAULT ''
+            location TEXT,
+            employment_type TEXT,
+            description TEXT,
+            requirements TEXT,
+            closing_date TEXT,
+            published INTEGER DEFAULT 1,
+            created_at TEXT NOT NULL
         );
-        """
-    )
-
-    # Add initial project if database is empty
-    project_count = connection.execute(
-        "SELECT COUNT(*) FROM projects"
-    ).fetchone()[0]
-
-    if project_count == 0:
-
-        connection.execute(
-            """
-            INSERT INTO projects(title, description)
-            VALUES (?, ?)
-            """,
-            (
-                "KMPE PLC Construction",
-                "Construction, fountain works and finishing works."
-            )
-        )
-
-    # Add initial news
-    news_count = connection.execute(
-        "SELECT COUNT(*) FROM news"
-    ).fetchone()[0]
-
-    if news_count == 0:
-
-        connection.execute(
-            """
-            INSERT INTO news(title, content)
-            VALUES (?, ?)
-            """,
-            (
-                "Welcome to KMPE PLC",
-                "KMPE PLC provides professional construction, fountain and finishing services."
-            )
-        )
-
-    connection.commit()
-    connection.close()
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT,
+            phone TEXT,
+            message TEXT NOT NULL,
+            is_read INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS settings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            setting_key TEXT UNIQUE NOT NULL,
+            setting_value TEXT
+        );
+        CREATE TABLE IF NOT EXISTS applications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, vacancy_id INTEGER, full_name TEXT NOT NULL,
+            email TEXT NOT NULL, phone TEXT, education TEXT, experience TEXT, cover_letter TEXT,
+            cv_filename TEXT, created_at TEXT NOT NULL,
+            FOREIGN KEY(vacancy_id) REFERENCES vacancies(id) ON DELETE SET NULL
+        );
+    """)
+    defaults = {
+        "about_heading": "Craftsmanship with a construction mindset.",
+        "about_text": "KPME PLC is a construction company focused on practical, high-quality execution across fountain works, finishing works and wider construction activities.",
+        "about_extra": "We showcase completed work, company news, career opportunities and make it easy for clients to contact our team.",
+        "hero_heading": "Building spaces that leave a mark.",
+        "hero_text": "Fountain works, finishing works and construction solutions delivered with precision, craftsmanship and a modern vision.",
+        "contact_heading": "Let's build something remarkable.", "contact_text": "Tell us about your construction, fountain or finishing project.",
+        "contact_location": "Ethiopia", "contact_email": "info@kpmeplc.com", "contact_phone": "+251 XXX XXX XXX",
+        "service1_title": "Fountain Works", "service1_text": "Fountain construction, water-feature works and finishing details designed for attractive public and private spaces.",
+        "service2_title": "Finishing Works", "service2_text": "Interior and exterior finishing activities with attention to clean workmanship and detail.",
+        "service3_title": "Construction Works", "service3_text": "General construction and civil works delivered with organized execution and quality control.",
+        "service4_title": "Special Works", "service4_text": "Additional construction activities tailored to client needs."
+    }
+    for key, value in defaults.items():
+        db.execute("INSERT OR IGNORE INTO settings(setting_key,setting_value) VALUES(?,?)", (key, value))
+    db.commit()
+    db.close()
 
 
-# --------------------------------------------------
-# HOME PAGE
-# --------------------------------------------------
+def now():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def allowed_file(filename):
+    return bool(filename and "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS)
+
+
+def save_uploaded_image(file):
+    if not file or not file.filename or not allowed_file(file.filename):
+        return None
+    original = secure_filename(file.filename)
+    ext = os.path.splitext(original)[1].lower()
+    filename = f"{uuid.uuid4().hex}{ext}"
+    file.save(os.path.join(UPLOAD_DIR, filename))
+    return filename
+
+
+def delete_uploaded_image(filename):
+    if filename:
+        path = os.path.join(UPLOAD_DIR, os.path.basename(filename))
+        if os.path.isfile(path):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+
+
+def admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get("admin_logged_in"):
+            return redirect(url_for("admin_login"))
+        return view(*args, **kwargs)
+    return wrapped
+
+
+@app.context_processor
+def inject_globals():
+    return {"current_year": datetime.now().year}
+
 
 @app.route("/")
-def index():
-
-    connection = get_db()
-
-    projects = connection.execute(
-        "SELECT * FROM projects ORDER BY id DESC"
-    ).fetchall()
-
-    news = connection.execute(
-        "SELECT * FROM news ORDER BY id DESC"
-    ).fetchall()
-
-    vacancies = connection.execute(
-        "SELECT * FROM vacancies ORDER BY id DESC"
-    ).fetchall()
-
-    connection.close()
-
-    return render_template(
-        "index.html",
-        projects=projects,
-        news=news,
-        vacancies=vacancies
-    )
+def home():
+    db = get_db()
+    projects = db.execute("SELECT * FROM projects ORDER BY id DESC LIMIT 6").fetchall()
+    news = db.execute("SELECT * FROM news WHERE published=1 ORDER BY id DESC LIMIT 3").fetchall()
+    vacancies = db.execute("SELECT * FROM vacancies WHERE published=1 ORDER BY id DESC LIMIT 3").fetchall()
+    settings = {r["setting_key"]: r["setting_value"] for r in db.execute("SELECT setting_key,setting_value FROM settings").fetchall()}
+    return render_template("index.html", projects=projects, news=news, vacancies=vacancies, settings=settings)
 
 
-# --------------------------------------------------
-# LOGIN
-# --------------------------------------------------
+@app.route("/uploads/<path:filename>")
+def uploaded_file(filename):
+    return send_from_directory(UPLOAD_DIR, filename)
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
 
+@app.route("/contact", methods=["POST"])
+def contact():
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip()
+    phone = request.form.get("phone", "").strip()
+    message = request.form.get("message", "").strip()
+    if not name or not message:
+        flash("Please enter your name and message.", "error")
+        return redirect(url_for("home") + "#contact")
+    db = get_db()
+    db.execute("INSERT INTO messages(name,email,phone,message,is_read,created_at) VALUES(?,?,?,?,?,?)", (name, email, phone, message, 0, now()))
+    db.commit()
+    flash("Thank you. Your message has been received.", "success")
+    return redirect(url_for("home") + "#contact")
+
+
+@app.route("/admin", methods=["GET", "POST"])
+def admin_login():
+    if session.get("admin_logged_in"):
+        return redirect(url_for("admin_dashboard"))
     if request.method == "POST":
-
-        username = request.form.get("username", "")
+        username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-
-        if (
-            username == ADMIN_USERNAME
-            and password == ADMIN_PASSWORD
-        ):
-
-            session["admin"] = True
-
-            return redirect(url_for("admin"))
-
-        flash("Incorrect username or password.")
-
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            session.clear()
+            session["admin_logged_in"] = True
+            session["admin_username"] = username
+            return redirect(url_for("admin_dashboard"))
+        flash("Incorrect username or password.", "error")
     return render_template("login.html")
 
 
-# --------------------------------------------------
-# LOGOUT
-# --------------------------------------------------
+@app.route("/admin/site-content", methods=["POST"])
+@admin_required
+def save_site_content():
+    keys = ["hero_heading", "hero_text", "about_heading", "about_text", "about_extra", "service1_title", "service1_text", "service2_title", "service2_text", "service3_title", "service3_text", "service4_title", "service4_text", "contact_heading", "contact_text", "contact_location", "contact_email", "contact_phone"]
+    db = get_db()
+    for key in keys:
+        db.execute("INSERT INTO settings(setting_key,setting_value) VALUES(?,?) ON CONFLICT(setting_key) DO UPDATE SET setting_value=excluded.setting_value", (key, request.form.get(key, "").strip()))
+    db.commit()
+    flash("Website content updated successfully.", "success")
+    return redirect(url_for("admin_dashboard") + "#site-content-admin")
 
-@app.route("/logout")
-def logout():
 
+@app.route("/careers/apply/<int:vacancy_id>", methods=["POST"])
+def apply_vacancy(vacancy_id):
+    db = get_db()
+    vacancy = db.execute("SELECT id FROM vacancies WHERE id=? AND published=1", (vacancy_id,)).fetchone()
+    full_name = request.form.get("full_name", "").strip()
+    email = request.form.get("email", "").strip()
+    if not vacancy or not full_name or not email:
+        flash("Please provide your full name and email to apply.", "error")
+        return redirect(url_for("home") + "#vacancies")
+    cv = request.files.get("cv")
+    cv_filename = None
+    if cv and cv.filename:
+        if cv.filename.rsplit(".", 1)[-1].lower() not in {"pdf", "doc", "docx"}:
+            flash("CV must be a PDF, DOC, or DOCX file.", "error")
+            return redirect(url_for("home") + "#vacancies")
+        ext = secure_filename(cv.filename).rsplit(".", 1)[-1].lower()
+        cv_filename = f"{uuid.uuid4().hex}.{ext}"
+        cv.save(os.path.join(UPLOAD_DIR, cv_filename))
+    db.execute("INSERT INTO applications(vacancy_id,full_name,email,phone,education,experience,cover_letter,cv_filename,created_at) VALUES(?,?,?,?,?,?,?,?,?)", (vacancy_id, full_name, email, request.form.get("phone", "").strip(), request.form.get("education", "").strip(), request.form.get("experience", "").strip(), request.form.get("cover_letter", "").strip(), cv_filename, now()))
+    db.commit()
+    flash("Your application has been submitted successfully.", "success")
+    return redirect(url_for("home") + "#vacancies")
+
+
+@app.route("/admin/logout")
+def admin_logout():
     session.clear()
-
-    return redirect(url_for("index"))
-
-
-# --------------------------------------------------
-# ADMIN
-# --------------------------------------------------
-
-@app.route("/admin")
-def admin():
-
-    if not session.get("admin"):
-
-        return redirect(url_for("login"))
-
-    connection = get_db()
-
-    projects = connection.execute(
-        "SELECT * FROM projects ORDER BY id DESC"
-    ).fetchall()
-
-    news = connection.execute(
-        "SELECT * FROM news ORDER BY id DESC"
-    ).fetchall()
-
-    vacancies = connection.execute(
-        "SELECT * FROM vacancies ORDER BY id DESC"
-    ).fetchall()
-
-    connection.close()
-
-    return render_template(
-        "admin.html",
-        projects=projects,
-        news=news,
-        vacancies=vacancies
-    )
+    return redirect(url_for("admin_login"))
 
 
-# --------------------------------------------------
-# PROJECTS
-# --------------------------------------------------
+@app.route("/admin/dashboard")
+@admin_required
+def admin_dashboard():
+    db = get_db()
+    projects = db.execute("SELECT * FROM projects ORDER BY id DESC").fetchall()
+    news = db.execute("SELECT * FROM news ORDER BY id DESC").fetchall()
+    vacancies = db.execute("SELECT * FROM vacancies ORDER BY id DESC").fetchall()
+    messages = db.execute("SELECT * FROM messages ORDER BY id DESC").fetchall()
+    applications = db.execute("SELECT applications.*, vacancies.title AS vacancy_title FROM applications LEFT JOIN vacancies ON vacancies.id=applications.vacancy_id ORDER BY applications.id DESC").fetchall()
+    settings = {r["setting_key"]: r["setting_value"] for r in db.execute("SELECT setting_key,setting_value FROM settings").fetchall()}
+    unread_messages = db.execute("SELECT COUNT(*) FROM messages WHERE is_read=0").fetchone()[0]
+    return render_template("admin.html", projects=projects, news=news, vacancies=vacancies, messages=messages, applications=applications, settings=settings, unread_messages=unread_messages)
 
-@app.post("/admin/project")
+
+@app.route("/admin/projects/add", methods=["POST"])
+@admin_required
 def add_project():
-
-    if not session.get("admin"):
-
-        return redirect(url_for("login"))
-
     title = request.form.get("title", "").strip()
+    category = request.form.get("category", "").strip()
     description = request.form.get("description", "").strip()
-
-    if title:
-
-        connection = get_db()
-
-        connection.execute(
-            """
-            INSERT INTO projects(title, description)
-            VALUES (?, ?)
-            """,
-            (title, description)
-        )
-
-        connection.commit()
-        connection.close()
-
-    return redirect(url_for("admin"))
+    image = save_uploaded_image(request.files.get("image"))
+    if not title:
+        flash("Project title is required.", "error")
+        return redirect(url_for("admin_dashboard"))
+    db = get_db()
+    db.execute("INSERT INTO projects(title,category,description,image,created_at) VALUES(?,?,?,?,?)", (title, category, description, image, now()))
+    db.commit()
+    flash("Project added successfully.", "success")
+    return redirect(url_for("admin_dashboard"))
 
 
-@app.post("/admin/project/<int:item_id>/delete")
-def delete_project(item_id):
-
-    if not session.get("admin"):
-
-        return redirect(url_for("login"))
-
-    connection = get_db()
-
-    connection.execute(
-        "DELETE FROM projects WHERE id=?",
-        (item_id,)
-    )
-
-    connection.commit()
-    connection.close()
-
-    return redirect(url_for("admin"))
+@app.route("/admin/projects/delete/<int:project_id>", methods=["POST"])
+@admin_required
+def delete_project(project_id):
+    db = get_db()
+    item = db.execute("SELECT * FROM projects WHERE id=?", (project_id,)).fetchone()
+    if item:
+        delete_uploaded_image(item["image"])
+        db.execute("DELETE FROM projects WHERE id=?", (project_id,))
+        db.commit()
+    flash("Project deleted.", "success")
+    return redirect(url_for("admin_dashboard"))
 
 
-# --------------------------------------------------
-# NEWS
-# --------------------------------------------------
-
-@app.post("/admin/news")
+@app.route("/admin/news/add", methods=["POST"])
+@admin_required
 def add_news():
-
-    if not session.get("admin"):
-
-        return redirect(url_for("login"))
-
     title = request.form.get("title", "").strip()
     content = request.form.get("content", "").strip()
-
-    if title:
-
-        connection = get_db()
-
-        connection.execute(
-            """
-            INSERT INTO news(title, content)
-            VALUES (?, ?)
-            """,
-            (title, content)
-        )
-
-        connection.commit()
-        connection.close()
-
-    return redirect(url_for("admin"))
+    published = 1 if request.form.get("published") else 0
+    image = save_uploaded_image(request.files.get("image"))
+    if not title:
+        flash("News title is required.", "error")
+        return redirect(url_for("admin_dashboard"))
+    db = get_db()
+    db.execute("INSERT INTO news(title,content,image,published,created_at) VALUES(?,?,?,?,?)", (title, content, image, published, now()))
+    db.commit()
+    flash("News published successfully.", "success")
+    return redirect(url_for("admin_dashboard"))
 
 
-@app.post("/admin/news/<int:item_id>/delete")
-def delete_news(item_id):
-
-    if not session.get("admin"):
-
-        return redirect(url_for("login"))
-
-    connection = get_db()
-
-    connection.execute(
-        "DELETE FROM news WHERE id=?",
-        (item_id,)
-    )
-
-    connection.commit()
-    connection.close()
-
-    return redirect(url_for("admin"))
+@app.route("/admin/news/delete/<int:news_id>", methods=["POST"])
+@admin_required
+def delete_news(news_id):
+    db = get_db()
+    item = db.execute("SELECT * FROM news WHERE id=?", (news_id,)).fetchone()
+    if item:
+        delete_uploaded_image(item["image"])
+        db.execute("DELETE FROM news WHERE id=?", (news_id,))
+        db.commit()
+    flash("News deleted.", "success")
+    return redirect(url_for("admin_dashboard"))
 
 
-# --------------------------------------------------
-# VACANCIES
-# --------------------------------------------------
-
-@app.post("/admin/vacancy")
+@app.route("/admin/vacancies/add", methods=["POST"])
+@admin_required
 def add_vacancy():
-
-    if not session.get("admin"):
-
-        return redirect(url_for("login"))
-
     title = request.form.get("title", "").strip()
+    location = request.form.get("location", "").strip()
+    employment_type = request.form.get("employment_type", "").strip()
     description = request.form.get("description", "").strip()
-
-    if title:
-
-        connection = get_db()
-
-        connection.execute(
-            """
-            INSERT INTO vacancies(title, description)
-            VALUES (?, ?)
-            """,
-            (title, description)
-        )
-
-        connection.commit()
-        connection.close()
-
-    return redirect(url_for("admin"))
+    requirements = request.form.get("requirements", "").strip()
+    closing_date = request.form.get("closing_date", "").strip()
+    published = 1 if request.form.get("published") else 0
+    if not title:
+        flash("Vacancy title is required.", "error")
+        return redirect(url_for("admin_dashboard"))
+    db = get_db()
+    db.execute("INSERT INTO vacancies(title,location,employment_type,description,requirements,closing_date,published,created_at) VALUES(?,?,?,?,?,?,?,?)", (title, location, employment_type, description, requirements, closing_date, published, now()))
+    db.commit()
+    flash("Vacancy added successfully.", "success")
+    return redirect(url_for("admin_dashboard"))
 
 
-@app.post("/admin/vacancy/<int:item_id>/delete")
-def delete_vacancy(item_id):
-
-    if not session.get("admin"):
-
-        return redirect(url_for("login"))
-
-    connection = get_db()
-
-    connection.execute(
-        "DELETE FROM vacancies WHERE id=?",
-        (item_id,)
-    )
-
-    connection.commit()
-    connection.close()
-
-    return redirect(url_for("admin"))
+@app.route("/admin/vacancies/delete/<int:vacancy_id>", methods=["POST"])
+@admin_required
+def delete_vacancy(vacancy_id):
+    db = get_db()
+    db.execute("DELETE FROM vacancies WHERE id=?", (vacancy_id,))
+    db.commit()
+    flash("Vacancy deleted.", "success")
+    return redirect(url_for("admin_dashboard"))
 
 
-# --------------------------------------------------
-# STARTUP
-# --------------------------------------------------
+@app.route("/admin/messages/read/<int:message_id>", methods=["POST"])
+@admin_required
+def mark_message_read(message_id):
+    db = get_db()
+    db.execute("UPDATE messages SET is_read=1 WHERE id=?", (message_id,))
+    db.commit()
+    return redirect(url_for("admin_dashboard"))
 
-init_db()
 
+@app.route("/admin/messages/delete/<int:message_id>", methods=["POST"])
+@admin_required
+def delete_message(message_id):
+    db = get_db()
+    db.execute("DELETE FROM messages WHERE id=?", (message_id,))
+    db.commit()
+    flash("Message deleted.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/health")
+def health():
+    return {"status": "ok", "company": "KPME PLC"}
+
+
+@app.route("/robots.txt")
+def robots():
+    return "User-agent: *\nDisallow: /admin\nDisallow: /admin/\n"
+
+
+init_database()
 
 if __name__ == "__main__":
-
-    port = int(
-        os.environ.get(
-            "PORT",
-            5000
-        )
-    )
-
-    app.run(
-        host="0.0.0.0",
-        port=port
-    )
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
