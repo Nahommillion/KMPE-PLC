@@ -1,4 +1,5 @@
 import os
+import json
 import sqlite3
 import uuid
 from datetime import datetime
@@ -16,7 +17,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app.secret_key = os.environ.get("SECRET_KEY", "CHANGE_THIS_SECRET_KEY")
-app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
 ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
 ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
@@ -90,6 +91,19 @@ def init_database():
             FOREIGN KEY(vacancy_id) REFERENCES vacancies(id) ON DELETE SET NULL
         );
     """)
+    # Safe schema migrations keep existing production databases and content intact.
+    for table in ("projects", "news"):
+        columns = {row[1] for row in db.execute(f"PRAGMA table_info({table})").fetchall()}
+        if "images_json" not in columns:
+            db.execute(f"ALTER TABLE {table} ADD COLUMN images_json TEXT DEFAULT '[]'")
+    db.execute("""CREATE TABLE IF NOT EXISTS services (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        icon TEXT DEFAULT '🛠️',
+        enabled INTEGER DEFAULT 1,
+        created_at TEXT NOT NULL
+    )""")
     defaults = {
         "about_heading": "Craftsmanship with a construction mindset.",
         "about_text": "KPME PLC is a construction company focused on practical, high-quality execution across fountain works, finishing works and wider construction activities.",
@@ -101,10 +115,19 @@ def init_database():
         "service1_title": "Fountain Works", "service1_text": "Fountain construction, water-feature works and finishing details designed for attractive public and private spaces.",
         "service2_title": "Finishing Works", "service2_text": "Interior and exterior finishing activities with attention to clean workmanship and detail.",
         "service3_title": "Construction Works", "service3_text": "General construction and civil works delivered with organized execution and quality control.",
-        "service4_title": "Special Works", "service4_text": "Additional construction activities tailored to client needs."
+        "service4_title": "Special Works", "service4_text": "Additional construction activities tailored to client needs.",
+        "social_facebook": "", "social_instagram": "", "social_linkedin": "", "social_telegram": "", "social_youtube": "", "social_tiktok": "", "logo_filename": ""
     }
     for key, value in defaults.items():
         db.execute("INSERT OR IGNORE INTO settings(setting_key,setting_value) VALUES(?,?)", (key, value))
+    if db.execute("SELECT COUNT(*) FROM services").fetchone()[0] == 0:
+        seed_services = [
+            ("Fountain Works", "Fountain construction, water features and related installations.", "💧", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            ("Finishing Works", "Interior and exterior finishing, surfaces and detailed workmanship.", "🎨", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            ("Construction Works", "General construction and coordinated civil works.", "🏗️", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            ("Special Works", "Specialized works tailored to client needs.", "🧱", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+        ]
+        db.executemany("INSERT INTO services(title,description,icon,enabled,created_at) VALUES(?,?,?,?,?)", seed_services)
     db.commit()
     db.close()
 
@@ -125,6 +148,39 @@ def save_uploaded_image(file):
     filename = f"{uuid.uuid4().hex}{ext}"
     file.save(os.path.join(UPLOAD_DIR, filename))
     return filename
+
+
+def save_uploaded_images(files):
+    saved = []
+    for file in files or []:
+        if file and file.filename:
+            filename = save_uploaded_image(file)
+            if filename:
+                saved.append(filename)
+    return saved
+
+
+def collect_images(row):
+    """Return legacy single image plus any newer gallery images, without duplicates."""
+    try:
+        images = json.loads(row.get("images_json") or "[]") if isinstance(row, dict) else json.loads(row["images_json"] or "[]")
+    except (ValueError, TypeError, KeyError):
+        images = []
+    legacy = row.get("image") if isinstance(row, dict) else row["image"]
+    result = []
+    for filename in ([legacy] if legacy else []) + (images if isinstance(images, list) else []):
+        if filename and filename not in result:
+            result.append(filename)
+    return result
+
+
+def enrich_gallery(rows):
+    enriched = []
+    for row in rows:
+        item = dict(row)
+        item["gallery"] = collect_images(item)
+        enriched.append(item)
+    return enriched
 
 
 def delete_uploaded_image(filename):
@@ -154,11 +210,12 @@ def inject_globals():
 @app.route("/")
 def home():
     db = get_db()
-    projects = db.execute("SELECT * FROM projects ORDER BY id DESC LIMIT 6").fetchall()
-    news = db.execute("SELECT * FROM news WHERE published=1 ORDER BY id DESC LIMIT 3").fetchall()
+    projects = enrich_gallery(db.execute("SELECT * FROM projects ORDER BY id DESC LIMIT 6").fetchall())
+    news = enrich_gallery(db.execute("SELECT * FROM news WHERE published=1 ORDER BY id DESC LIMIT 3").fetchall())
+    services = db.execute("SELECT * FROM services WHERE enabled=1 ORDER BY id").fetchall()
     vacancies = db.execute("SELECT * FROM vacancies WHERE published=1 ORDER BY id DESC LIMIT 3").fetchall()
     settings = {r["setting_key"]: r["setting_value"] for r in db.execute("SELECT setting_key,setting_value FROM settings").fetchall()}
-    return render_template("index.html", projects=projects, news=news, vacancies=vacancies, settings=settings)
+    return render_template("index.html", projects=projects, news=news, vacancies=vacancies, settings=settings, services=services)
 
 
 # Compatibility endpoint: some existing templates refer to url_for("index").
@@ -201,14 +258,20 @@ def admin_login():
             session["admin_username"] = username
             return redirect(url_for("admin_dashboard"))
         flash("Incorrect username or password.", "error")
-    return render_template("login.html")
+    logo = get_db().execute("SELECT setting_value FROM settings WHERE setting_key='logo_filename'").fetchone()
+    return render_template("login.html", logo_filename=(logo[0] if logo else ""))
 
 
 @app.route("/admin/site-content", methods=["POST"])
 @admin_required
 def save_site_content():
-    keys = ["hero_heading", "hero_text", "about_heading", "about_text", "about_extra", "service1_title", "service1_text", "service2_title", "service2_text", "service3_title", "service3_text", "service4_title", "service4_text", "contact_heading", "contact_text", "contact_location", "contact_email", "contact_phone"]
+    keys = ["hero_heading", "hero_text", "about_heading", "about_text", "about_extra", "service1_title", "service1_text", "service2_title", "service2_text", "service3_title", "service3_text", "service4_title", "service4_text", "contact_heading", "contact_text", "contact_location", "contact_email", "contact_phone", "social_facebook", "social_instagram", "social_linkedin", "social_telegram", "social_youtube", "social_tiktok"]
     db = get_db()
+    logo = request.files.get("logo")
+    if logo and logo.filename:
+        logo_filename = save_uploaded_image(logo)
+        if logo_filename:
+            db.execute("INSERT INTO settings(setting_key,setting_value) VALUES('logo_filename',?) ON CONFLICT(setting_key) DO UPDATE SET setting_value=excluded.setting_value", (logo_filename,))
     for key in keys:
         db.execute("INSERT INTO settings(setting_key,setting_value) VALUES(?,?) ON CONFLICT(setting_key) DO UPDATE SET setting_value=excluded.setting_value", (key, request.form.get(key, "").strip()))
     db.commit()
@@ -250,14 +313,15 @@ def admin_logout():
 @admin_required
 def admin_dashboard():
     db = get_db()
-    projects = db.execute("SELECT * FROM projects ORDER BY id DESC").fetchall()
-    news = db.execute("SELECT * FROM news ORDER BY id DESC").fetchall()
+    projects = enrich_gallery(db.execute("SELECT * FROM projects ORDER BY id DESC").fetchall())
+    news = enrich_gallery(db.execute("SELECT * FROM news ORDER BY id DESC").fetchall())
+    services = db.execute("SELECT * FROM services ORDER BY id").fetchall()
     vacancies = db.execute("SELECT * FROM vacancies ORDER BY id DESC").fetchall()
     messages = db.execute("SELECT * FROM messages ORDER BY id DESC").fetchall()
     applications = db.execute("SELECT applications.*, vacancies.title AS vacancy_title FROM applications LEFT JOIN vacancies ON vacancies.id=applications.vacancy_id ORDER BY applications.id DESC").fetchall()
     settings = {r["setting_key"]: r["setting_value"] for r in db.execute("SELECT setting_key,setting_value FROM settings").fetchall()}
     unread_messages = db.execute("SELECT COUNT(*) FROM messages WHERE is_read=0").fetchone()[0]
-    return render_template("admin.html", projects=projects, news=news, vacancies=vacancies, messages=messages, applications=applications, settings=settings, unread_messages=unread_messages)
+    return render_template("admin.html", projects=projects, news=news, vacancies=vacancies, messages=messages, applications=applications, settings=settings, unread_messages=unread_messages, services=services)
 
 
 @app.route("/admin/projects/add", methods=["POST"])
@@ -266,12 +330,13 @@ def add_project():
     title = request.form.get("title", "").strip()
     category = request.form.get("category", "").strip()
     description = request.form.get("description", "").strip()
-    image = save_uploaded_image(request.files.get("image"))
+    images = save_uploaded_images(request.files.getlist("images"))
+    image = images[0] if images else None
     if not title:
         flash("Project title is required.", "error")
         return redirect(url_for("admin_dashboard"))
     db = get_db()
-    db.execute("INSERT INTO projects(title,category,description,image,created_at) VALUES(?,?,?,?,?)", (title, category, description, image, now()))
+    db.execute("INSERT INTO projects(title,category,description,image,images_json,created_at) VALUES(?,?,?,?,?,?)", (title, category, description, image, json.dumps(images), now()))
     db.commit()
     flash("Project added successfully.", "success")
     return redirect(url_for("admin_dashboard"))
@@ -283,7 +348,8 @@ def delete_project(project_id):
     db = get_db()
     item = db.execute("SELECT * FROM projects WHERE id=?", (project_id,)).fetchone()
     if item:
-        delete_uploaded_image(item["image"])
+        for filename in collect_images(dict(item)):
+            delete_uploaded_image(filename)
         db.execute("DELETE FROM projects WHERE id=?", (project_id,))
         db.commit()
     flash("Project deleted.", "success")
@@ -296,12 +362,13 @@ def add_news():
     title = request.form.get("title", "").strip()
     content = request.form.get("content", "").strip()
     published = 1 if request.form.get("published") else 0
-    image = save_uploaded_image(request.files.get("image"))
+    images = save_uploaded_images(request.files.getlist("images"))
+    image = images[0] if images else None
     if not title:
         flash("News title is required.", "error")
         return redirect(url_for("admin_dashboard"))
     db = get_db()
-    db.execute("INSERT INTO news(title,content,image,published,created_at) VALUES(?,?,?,?,?)", (title, content, image, published, now()))
+    db.execute("INSERT INTO news(title,content,image,images_json,published,created_at) VALUES(?,?,?,?,?,?)", (title, content, image, json.dumps(images), published, now()))
     db.commit()
     flash("News published successfully.", "success")
     return redirect(url_for("admin_dashboard"))
@@ -313,7 +380,8 @@ def delete_news(news_id):
     db = get_db()
     item = db.execute("SELECT * FROM news WHERE id=?", (news_id,)).fetchone()
     if item:
-        delete_uploaded_image(item["image"])
+        for filename in collect_images(dict(item)):
+            delete_uploaded_image(filename)
         db.execute("DELETE FROM news WHERE id=?", (news_id,))
         db.commit()
     flash("News deleted.", "success")
@@ -367,6 +435,54 @@ def delete_message(message_id):
     db.commit()
     flash("Message deleted.", "success")
     return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/services/<int:service_id>")
+def service_detail(service_id):
+    db = get_db()
+    service = db.execute("SELECT * FROM services WHERE id=? AND enabled=1", (service_id,)).fetchone()
+    if not service:
+        return redirect(url_for("home") + "#services")
+    rows = db.execute("SELECT * FROM projects WHERE lower(trim(category))=lower(trim(?)) ORDER BY id DESC", (service["title"],)).fetchall()
+    projects = enrich_gallery(rows)
+    return render_template("service_detail.html", service=service, projects=projects)
+
+
+@app.route("/admin/services/add", methods=["POST"])
+@admin_required
+def add_service():
+    title = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    icon = request.form.get("icon", "🛠️").strip() or "🛠️"
+    enabled = 1 if request.form.get("enabled") else 0
+    if not title:
+        flash("Service name is required.", "error")
+        return redirect(url_for("admin_dashboard") + "#services-admin")
+    db = get_db()
+    db.execute("INSERT INTO services(title,description,icon,enabled,created_at) VALUES(?,?,?,?,?)", (title, description, icon, enabled, now()))
+    db.commit()
+    flash("Service added. If enabled, it is now shown on the public website.", "success")
+    return redirect(url_for("admin_dashboard") + "#services-admin")
+
+
+@app.route("/admin/services/toggle/<int:service_id>", methods=["POST"])
+@admin_required
+def toggle_service(service_id):
+    db = get_db()
+    db.execute("UPDATE services SET enabled=CASE WHEN enabled=1 THEN 0 ELSE 1 END WHERE id=?", (service_id,))
+    db.commit()
+    flash("Service visibility updated.", "success")
+    return redirect(url_for("admin_dashboard") + "#services-admin")
+
+
+@app.route("/admin/services/delete/<int:service_id>", methods=["POST"])
+@admin_required
+def delete_service(service_id):
+    db = get_db()
+    db.execute("DELETE FROM services WHERE id=?", (service_id,))
+    db.commit()
+    flash("Service deleted.", "success")
+    return redirect(url_for("admin_dashboard") + "#services-admin")
 
 
 @app.route("/health")

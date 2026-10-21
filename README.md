@@ -39,3 +39,13 @@ Do not commit a real `.env` file or real admin password to GitHub. Use Render en
 - Admin project/news/vacancy management
 - Contact message inbox
 - Health endpoint at `/health`
+
+
+## Latest content features
+- Upload a company logo from Admin Dashboard → Website Content; it appears on the admin login page.
+- Select multiple project and news photos in one upload. Existing single-image content remains compatible.
+- Add service categories, choose whether each is visible, and assign projects to the same category. Clicking a service opens its category page with the matching project descriptions and photo galleries.
+- Configure social media links in Website Content; saved links appear in Contact and the footer.
+- Existing SQLite databases are migrated automatically with new gallery/service fields.
+
+For Render, use a persistent disk and set `DATA_DIR` to its mount path to preserve uploaded files and the SQLite database across redeploys.

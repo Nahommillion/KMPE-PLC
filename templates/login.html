@@ -4,7 +4,7 @@
 <div class="admin-login-page">
   <div class="login-glow"></div>
   <div class="login-card">
-    <a class="brand login-brand" href="/"><span class="brand-mark">K</span><span><strong>KPME</strong><small>PLC</small></span></a>
+    <a class="brand login-brand" href="/">{% if logo_filename %}<img src="{{ url_for('uploaded_file', filename=logo_filename) }}" alt="KPME PLC logo" style="width:64px;height:64px;object-fit:contain;border-radius:10px">{% else %}<span class="brand-mark">K</span>{% endif %}<span><strong>KPME</strong><small>PLC</small></span></a>
     <div class="eyebrow"><span></span> PRIVATE ADMIN AREA</div>
     <h1>Welcome back.</h1>
     <p>Sign in to manage projects, images, company news, vacancies and contact messages.</p>
