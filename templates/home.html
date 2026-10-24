@@ -1,11 +1,40 @@
 {% extends "public_base.html" %}
-{% block title %}KPME PLC | Project Gallery and Recent News{% endblock %}
+{% block title %}KPME PLC | Construction & Finishing{% endblock %}
 {% block page_content %}
+<section class="hero section-pad home-hero home-brand-visual">
+  <div class="hero-grid container">
+    <div class="hero-copy">
+      <div class="eyebrow"><span></span> KPME PLC · CONSTRUCTION &amp; FINISHING</div>
+      <h1>{{ settings.get('hero_heading', 'Building spaces that leave a mark.') }}</h1>
+      <p class="hero-text">{{ settings.get('hero_text', 'Fountain works, finishing works and construction solutions delivered with precision, craftsmanship and a modern vision.') }}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('services_page') }}">Explore Services <span>↗</span></a>
+        <a class="btn btn-ghost" href="{{ url_for('projects_page') }}">View Projects</a>
+      </div>
+      <div class="hero-stats">
+        <div><strong>{{ slides|length }}</strong><span>Project<br>Photos</span></div>
+        <div><strong>{{ services|length }}</strong><span>Service<br>Areas</span></div>
+        <div><strong>Quality</strong><span>In every<br>detail</span></div>
+      </div>
+    </div>
+    <div class="hero-visual reveal reveal-delay">
+      <div class="hero-frame">
+        <img src="{{ url_for('static', filename='images/hero.svg') }}" alt="KPME PLC construction and finishing visual">
+        <div class="hero-badge badge-one"><span>Built with purpose</span></div>
+        <div class="hero-badge badge-two"><span>Designed to impress</span></div>
+        <div class="scan-line"></div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-cue"><span></span> SCROLL TO EXPLORE</div>
+</section>
+<section class="marquee home-marquee"><div class="marquee-track">FOUNTAIN WORKS &nbsp; FINISHING WORKS &nbsp; CONSTRUCTION SOLUTIONS &nbsp; QUALITY &nbsp; CRAFTSMANSHIP &nbsp; KPME PLC &nbsp; </div></section>
+
 <section class="focus-gallery-section section-pad home-project-gallery">
   <div class="container">
     <div class="section-heading split">
-      <div><div class="eyebrow"><span></span> KPME PLC PROJECT PORTFOLIO</div><h1>Our work <em>in focus.</em></h1></div>
-      <p>Photographs from completed projects by KPME PLC. The gallery updates automatically when completed projects and their images are published through the admin panel.</p>
+      <div><div class="eyebrow"><span></span> KPME PLC PROJECT PORTFOLIO</div><h2>Our work <em>in focus.</em></h2></div>
+      <p>Project photographs change automatically. Completed project images uploaded through the admin panel appear here.</p>
     </div>
     <div class="focus-gallery hero-carousel" data-carousel aria-label="Completed project photo slideshow">
       {% if slides %}
@@ -16,7 +45,7 @@
           </a>
         {% endfor %}
       {% else %}
-        <div class="hero-slide active"><img src="{{ url_for('static', filename='images/hero.svg') }}" alt="KPME PLC project gallery"><div class="slide-caption"><span>Our work in focus</span><strong>Completed project gallery</strong><p>Upload photographs for projects marked Completed in the admin panel to display them here.</p></div></div>
+        <div class="hero-slide active"><img src="{{ url_for('static', filename='images/hero.svg') }}" alt="KPME PLC project gallery"><div class="slide-caption"><span>Our work in focus</span><strong>Completed project gallery</strong><p>Upload project photographs and mark the project Completed to display it here.</p></div></div>
       {% endif %}
       <button class="carousel-arrow prev" type="button" aria-label="Previous project image">‹</button>
       <button class="carousel-arrow next" type="button" aria-label="Next project image">›</button>
@@ -26,9 +55,20 @@
   </div>
 </section>
 
+<section class="section-pad home-about-section">
+  <div class="container two-col">
+    <div class="section-heading"><div class="eyebrow"><span></span> ABOUT KPME PLC</div><h2>{{ settings.get('about_heading', 'Welcome to KPME PLC') }}</h2></div>
+    <div class="about-copy">
+      <p>{{ settings.get('about_text', 'KPME PLC is an Ethiopian construction company focused on fountain works, finishing works and construction solutions. Since its establishment, the company has worked to deliver reliable workmanship and contribute to quality built environments.') }}</p>
+      {% if settings.get('about_extra') %}<p>{{ settings.get('about_extra') }}</p>{% endif %}
+      <a class="btn btn-primary home-read-more" href="{{ url_for('about_page') }}">Read More <span>↗</span></a>
+    </div>
+  </div>
+</section>
+
 <section class="section-pad news-section home-recent-news">
   <div class="container">
-    <div class="section-heading split"><div><div class="eyebrow"><span></span> RECENT NEWS ARTICLE</div><h2>Latest <em>news.</em></h2></div><p>Read the latest company announcements, project milestones and updates published by KPME PLC.</p></div>
+    <div class="section-heading split"><div><div class="eyebrow"><span></span> RECENT NEWS ARTICLE</div><h2>Recent <em>news.</em></h2></div><p>Company announcements, project milestones and updates published by KPME PLC.</p></div>
     <div class="news-grid">
       {% for item in news %}
         <article class="news-card">
@@ -38,7 +78,7 @@
           </a>
           <div class="news-body"><div class="date">{{ (item.created_at or '')[:10] }}</div><h3><a href="{{ url_for('news_detail', news_id=item.id) }}">{{ item.title }}</a></h3><p>{{ (item.content or '')[:280] }}{% if (item.content or '')|length > 280 %}…{% endif %}</p><a href="{{ url_for('news_detail', news_id=item.id) }}">Continue Reading →</a></div>
         </article>
-      {% else %}<p>Published news articles and their photographs will appear here after they are added through the admin panel.</p>{% endfor %}
+      {% else %}<p>Published news articles, photographs and descriptions will appear here when added through the admin panel.</p>{% endfor %}
     </div>
     <div class="page-cta"><a class="btn btn-ghost" href="{{ url_for('news_page') }}">View All News</a></div>
   </div>
