@@ -36,3 +36,11 @@ The included `render.yaml` uses `/var/data` for the SQLite database and uploaded
 6. Add social URLs in Website Content; valid links appear on the Contact page and in the site footer.
 
 The generated SVG wordmark at `static/images/kpme-logo.svg` is the default until a company logo is uploaded.
+
+## Additional public pages
+- `/vision`, `/mission`, and `/values` are individual company-information pages. Their headings and descriptions can be edited from **Admin > Website Editor**.
+- `/tender` is the public tenders/procurement information page; its heading and description are editable from the admin panel.
+- `/media` automatically displays uploaded project and published-news photographs.
+- The home page has both an automatic featured-project slideshow and a continuously moving project-photo ribbon. Add project images from **Admin > Projects & Gallery** to populate both.
+
+If a service detail page previously returned an Internal Server Error, the detail route now passes the public settings required by the shared header/footer. Startup migrations also normalize the service table columns used by the current app.

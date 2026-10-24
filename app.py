@@ -107,10 +107,30 @@ def init_database():
         enabled INTEGER DEFAULT 1,
         created_at TEXT NOT NULL
     )""")
+    # Normalize older service tables created by previous website versions.
+    service_columns = {row[1] for row in db.execute("PRAGMA table_info(services)").fetchall()}
+    for column, definition in (("title", "TEXT"), ("description", "TEXT DEFAULT ''"), ("icon", "TEXT DEFAULT ''"), ("enabled", "INTEGER DEFAULT 1"), ("created_at", "TEXT DEFAULT ''")):
+        if column not in service_columns:
+            db.execute(f"ALTER TABLE services ADD COLUMN {column} {definition}")
+    service_columns = {row[1] for row in db.execute("PRAGMA table_info(services)").fetchall()}
+    if "name" in service_columns:
+        db.execute("UPDATE services SET title=name WHERE title IS NULL OR trim(title)=''")
+    if "category" in service_columns:
+        db.execute("UPDATE services SET title=category WHERE title IS NULL OR trim(title)=''")
+    db.execute("UPDATE services SET title='Service' WHERE title IS NULL OR trim(title)=''")
+    db.execute("UPDATE services SET created_at=? WHERE created_at IS NULL OR trim(created_at)=''", (now(),))
     defaults = {
         "about_heading": "Craftsmanship with a construction mindset.",
         "about_text": "KPME PLC is a construction company focused on practical, high-quality execution across fountain works, finishing works and wider construction activities.",
         "about_extra": "We showcase completed work, company news, career opportunities and make it easy for clients to contact our team.",
+        "vision_heading": "Our Vision",
+        "vision_text": "To be a trusted construction and finishing partner, recognized for quality, innovation and lasting value.",
+        "mission_heading": "Our Mission",
+        "mission_text": "To deliver reliable construction, fountain and finishing solutions through skilled workmanship, careful planning and client-focused service.",
+        "values_heading": "Our Values",
+        "values_text": "Quality, integrity, safety, accountability, teamwork and respect for every client and project.",
+        "tender_heading": "Tenders & Procurement",
+        "tender_text": "KPME PLC tender announcements and procurement notices will be published here. Please use the Contact page for inquiries.",
         "hero_heading": "Building spaces that leave a mark.",
         "hero_text": "Fountain works, finishing works and construction solutions delivered with precision, craftsmanship and a modern vision.",
         "contact_heading": "Let's build something remarkable.", "contact_text": "Tell us about your construction, fountain or finishing project.",
@@ -249,6 +269,40 @@ def about_page():
     return render_template("about.html", settings=public_settings())
 
 
+@app.route("/vision")
+def vision_page():
+    return render_template("company_page.html", page_key="vision", heading_key="vision_heading", text_key="vision_text", settings=public_settings())
+
+
+@app.route("/mission")
+def mission_page():
+    return render_template("company_page.html", page_key="mission", heading_key="mission_heading", text_key="mission_text", settings=public_settings())
+
+
+@app.route("/values")
+def values_page():
+    return render_template("company_page.html", page_key="values", heading_key="values_heading", text_key="values_text", settings=public_settings())
+
+
+@app.route("/tender")
+def tender_page():
+    return render_template("company_page.html", page_key="tender", heading_key="tender_heading", text_key="tender_text", settings=public_settings())
+
+
+@app.route("/media")
+def media_page():
+    projects = public_projects()
+    news = enrich_gallery(get_db().execute("SELECT * FROM news WHERE published=1 ORDER BY id DESC").fetchall())
+    media = []
+    for project in projects:
+        for filename in project["gallery"]:
+            media.append({"filename": filename, "title": project["title"], "description": project["description"] or "", "kind": "Project"})
+    for item in news:
+        for filename in item["gallery"]:
+            media.append({"filename": filename, "title": item["title"], "description": item["content"] or "", "kind": "News"})
+    return render_template("media.html", media=media, settings=public_settings())
+
+
 @app.route("/services")
 def services_page():
     return render_template("services.html", services=public_services(), settings=public_settings())
@@ -346,7 +400,7 @@ def admin_login():
 @app.route("/admin/site-content", methods=["POST"])
 @admin_required
 def save_site_content():
-    keys = ["hero_heading", "hero_text", "about_heading", "about_text", "about_extra", "service1_title", "service1_text", "service2_title", "service2_text", "service3_title", "service3_text", "service4_title", "service4_text", "contact_heading", "contact_text", "contact_location", "contact_email", "contact_phone", "social_facebook", "social_instagram", "social_linkedin", "social_telegram", "social_youtube", "social_tiktok"]
+    keys = ["hero_heading", "hero_text", "about_heading", "about_text", "about_extra", "vision_heading", "vision_text", "mission_heading", "mission_text", "values_heading", "values_text", "tender_heading", "tender_text", "service1_title", "service1_text", "service2_title", "service2_text", "service3_title", "service3_text", "service4_title", "service4_text", "contact_heading", "contact_text", "contact_location", "contact_email", "contact_phone", "social_facebook", "social_instagram", "social_linkedin", "social_telegram", "social_youtube", "social_tiktok"]
     db = get_db()
     logo = request.files.get("logo")
     if logo and logo.filename:
@@ -529,7 +583,7 @@ def service_detail(service_id):
         return redirect(url_for("home") + "#services")
     rows = db.execute("SELECT * FROM projects WHERE lower(trim(category))=lower(trim(?)) ORDER BY id DESC", (service["title"],)).fetchall()
     projects = enrich_gallery(rows)
-    return render_template("service_detail.html", service=service, projects=projects)
+    return render_template("service_detail.html", service=service, projects=projects, settings=public_settings())
 
 
 @app.route("/admin/services/add", methods=["POST"])
