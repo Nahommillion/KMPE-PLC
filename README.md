@@ -1,51 +1,38 @@
 # KPME PLC Website
 
-A dark cinematic Flask website for KPME PLC, with public pages and a private admin panel for projects, images, news, vacancies and contact messages.
+Flask website for KPME PLC with a private admin dashboard and individual public pages.
 
-## Deploy to Render
+## Public pages
+- `/` — Home page with an automatic project-photo carousel
+- `/about` — About the company
+- `/services` — Enabled services
+- `/services/<service_id>` — Service-specific project portfolio
+- `/projects` — All projects and status filters
+- `/projects?status=Completed` — Completed projects (also `Ongoing`, `Pending`, `Other`)
+- `/projects/<project_id>` — Project description and automatic multi-photo gallery
+- `/news` and `/news/<news_id>` — News list and news detail/gallery
+- `/vacancies` — Published vacancies and application forms
+- `/contact` — Contact details, social links and contact form
+- `/login` — Admin login (also `/admin`)
+- `/admin/dashboard` — Admin dashboard
 
-1. Push these files to a GitHub repository.
-2. In Render, create a new Web Service from the repository.
-3. Render can use `render.yaml`, or enter:
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn app:app`
-4. Set environment variables:
-   - `ADMIN_USERNAME` = your admin username
-   - `ADMIN_PASSWORD` = your strong admin password
-   - `SECRET_KEY` = a long random secret
-   - `DATA_DIR` = `/var/data`
-5. The included `render.yaml` requests a 1 GB persistent disk at `/var/data` so SQLite data and uploaded images can persist. Availability/pricing of persistent disks depends on the Render plan.
+## Run locally
+```bash
+pip install -r requirements.txt
+python app.py
+```
 
-## Admin
+Set `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `SECRET_KEY` in the environment before deployment. Do not use the development fallback password in production.
 
-Public navigation does not show the admin link. Open `/admin` directly and sign in with the Render environment-variable credentials.
+## Render deployment and uploads
+The included `render.yaml` uses `/var/data` for the SQLite database and uploaded files and defines a persistent disk. In the Render service settings, confirm a persistent disk is actually attached and mounted at `/var/data`; if the existing Render service was created without the disk from this Blueprint, add/configure it there. Uploaded project images, company logo, news images, CV files and the SQLite database are stored under `DATA_DIR` and can be lost on redeploy if it points to an ephemeral filesystem.
 
-## Important
+## Admin usage
+1. Sign in at `/login`.
+2. Upload the company logo in Website Content. The logo is used in the login screen, public header/footer and admin sidebar.
+3. Add services and choose whether they are visible.
+4. Add projects with a category, description, status and multiple images. Visitors can open each project and step through its photo gallery. Home automatically rotates through uploaded project images.
+5. Publish news with multiple images and manage vacancies and contact messages.
+6. Add social URLs in Website Content; valid links appear on the Contact page and in the site footer.
 
-Do not commit a real `.env` file or real admin password to GitHub. Use Render environment variables.
-
-## Main features
-
-- Dark cinematic metallic design
-- Responsive desktop/mobile layout
-- Animated scroll reveals and hero interaction
-- Fountain, finishing and construction service sections
-- Projects/gallery
-- News
-- Vacancies
-- Contact form stored in the database
-- Private admin login
-- Admin image upload
-- Admin project/news/vacancy management
-- Contact message inbox
-- Health endpoint at `/health`
-
-
-## Latest content features
-- Upload a company logo from Admin Dashboard → Website Content; it appears on the admin login page.
-- Select multiple project and news photos in one upload. Existing single-image content remains compatible.
-- Add service categories, choose whether each is visible, and assign projects to the same category. Clicking a service opens its category page with the matching project descriptions and photo galleries.
-- Configure social media links in Website Content; saved links appear in Contact and the footer.
-- Existing SQLite databases are migrated automatically with new gallery/service fields.
-
-For Render, use a persistent disk and set `DATA_DIR` to its mount path to preserve uploaded files and the SQLite database across redeploys.
+The generated SVG wordmark at `static/images/kpme-logo.svg` is the default until a company logo is uploaded.

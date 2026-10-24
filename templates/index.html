@@ -8,7 +8,7 @@
       <span class="brand-mark">K</span>
       <span><strong>KPME</strong><small>PLC</small></span>
     </a>
-    <button class="menu-toggle" aria-label="Open menu">☰</button>
+    <button class="menu-toggle" aria-label="Open menu"></button>
     <nav class="nav-links">
       <a href="#about">About</a>
       <a href="#services">Services</a>
@@ -40,8 +40,8 @@
     <div class="hero-visual reveal reveal-delay">
       <div class="hero-frame">
         <img src="{{ url_for('static', filename='images/hero.svg') }}" alt="KPME PLC construction visual">
-        <div class="hero-badge badge-one">🏗️ <span>Built with purpose</span></div>
-        <div class="hero-badge badge-two">💧 <span>Designed to impress</span></div>
+        <div class="hero-badge badge-one"> <span>Built with purpose</span></div>
+        <div class="hero-badge badge-two"> <span>Designed to impress</span></div>
         <div class="scan-line"></div>
       </div>
     </div>
@@ -49,7 +49,7 @@
   <div class="scroll-cue"><span></span> SCROLL TO EXPLORE</div>
 </section>
 
-<section class="marquee"><div class="marquee-track">FOUNTAIN WORKS ✦ FINISHING WORKS ✦ CONSTRUCTION ✦ CIVIL WORKS ✦ QUALITY ✦ CRAFTSMANSHIP ✦</div></section>
+<section class="marquee"><div class="marquee-track">FOUNTAIN WORKS  FINISHING WORKS  CONSTRUCTION  CIVIL WORKS  QUALITY  CRAFTSMANSHIP </div></section>
 
 <section id="about" class="section-pad about-section">
   <div class="container two-col">
@@ -73,7 +73,7 @@
       <p>From water features to final finishes and construction works, KPME PLC can present each capability clearly to clients.</p>
     </div>
     <div class="service-grid">
-      {% for service in services %}<a class="service-card reveal" href="{{ url_for('service_detail', service_id=service.id) }}" style="text-decoration:none;color:inherit"><div class="service-number">{{ "%02d"|format(loop.index) }}</div><div class="service-icon">{{ service.icon }}</div><h3>{{ service.title }}</h3><p>{{ service.description or 'Explore projects and work delivered in this service category.' }}</p><span>🔎 View related projects →</span></a>{% else %}<p>Services will be added soon.</p>{% endfor %}
+      {% for service in services %}<a class="service-card reveal" href="{{ url_for('service_detail', service_id=service.id) }}" style="text-decoration:none;color:inherit"><div class="service-number">{{ "%02d"|format(loop.index) }}</div><div class="service-icon">{{ service.icon }}</div><h3>{{ service.title }}</h3><p>{{ service.description or 'Explore projects and work delivered in this service category.' }}</p><span> View related projects →</span></a>{% else %}<p>Services will be added soon.</p>{% endfor %}
     </div>
   </div>
 </section>
@@ -81,7 +81,7 @@
 <section id="projects" class="section-pad projects-section">
   <div class="container">
     <div class="section-heading split reveal">
-      <div><div class="eyebrow"><span></span> 🏗️ PROJECTS</div><h2>Work worth <em>showing.</em></h2></div>
+      <div><div class="eyebrow"><span></span>  PROJECTS</div><h2>Work worth <em>showing.</em></h2></div>
       <p>New projects uploaded from the private admin panel automatically appear here.</p>
     </div>
     <div class="project-grid">
@@ -90,7 +90,7 @@
         <article class="project-card reveal">
           <div class="project-image project-gallery">
             {% if project.gallery %}<img src="{{ url_for('uploaded_file', filename=project.gallery[0]) }}" alt="{{ project.title }}">{% else %}<img src="{{ url_for('static', filename='images/construction.svg') }}" alt="KPME PLC project">{% endif %}
-            <span>{{ project.category or 'Construction' }} · 🖼️ {{ project.gallery|length }}</span>
+            <span>{{ project.category or 'Construction' }} ·  {{ project.gallery|length }}</span>
           </div>
           {% if project.gallery|length > 1 %}<div class="project-thumbs">{% for photo in project.gallery %}<a href="{{ url_for('uploaded_file', filename=photo) }}" target="_blank" title="Open project photo {{ loop.index }}"><img src="{{ url_for('uploaded_file', filename=photo) }}" alt="{{ project.title }} photo {{ loop.index }}"></a>{% endfor %}</div>{% endif %}
           <div class="project-info"><h3>{{ project.title }}</h3><p>{{ project.description or 'KPME PLC construction project.' }}</p><a href="{{ url_for('service_detail', service_id=(services|selectattr('title','equalto',project.category)|map(attribute='id')|first)) if (services|selectattr('title','equalto',project.category)|list) else '#services' }}">Explore category →</a></div>
@@ -107,7 +107,7 @@
 
 <section id="news" class="section-pad news-section">
   <div class="container">
-    <div class="section-heading split reveal"><div><div class="eyebrow"><span></span> 📰 COMPANY NEWS</div><h2>What is <em>happening.</em></h2></div><p>Publish company updates, project milestones, announcements and other news from the admin panel.</p></div>
+    <div class="section-heading split reveal"><div><div class="eyebrow"><span></span>  COMPANY NEWS</div><h2>What is <em>happening.</em></h2></div><p>Publish company updates, project milestones, announcements and other news from the admin panel.</p></div>
     <div class="news-grid">
       {% if news %}
         {% for item in news %}
@@ -126,14 +126,14 @@
 
 <section id="vacancies" class="section-pad vacancies-section">
   <div class="container">
-    <div class="section-heading centered reveal"><div class="eyebrow"><span></span> 👷 CAREERS</div><h2>Build your career with <em>KPME PLC.</em></h2><p>Open positions published by the administrator will automatically be displayed here.</p></div>
+    <div class="section-heading centered reveal"><div class="eyebrow"><span></span>  CAREERS</div><h2>Build your career with <em>KPME PLC.</em></h2><p>Open positions published by the administrator will automatically be displayed here.</p></div>
     <div class="vacancy-list">
       {% if vacancies %}
         {% for vacancy in vacancies %}
-        <article class="vacancy reveal"><div><span class="vacancy-tag">OPEN POSITION</span><h3>{{ vacancy.title }}</h3><p>{{ vacancy.description }}</p><div class="vacancy-meta"><span>📍 {{ vacancy.location or 'Ethiopia' }}</span><span>💼 {{ vacancy.employment_type or 'Full Time' }}</span>{% if vacancy.closing_date %}<span>⏳ Closes {{ vacancy.closing_date }}</span>{% endif %}</div></div><div class="vacancy-requirements"><strong>Requirements</strong><p>{{ vacancy.requirements or 'See vacancy description.' }}</p><form class="application-form" action="{{ url_for('apply_vacancy', vacancy_id=vacancy.id) }}" method="post" enctype="multipart/form-data"><h4>Apply for this position</h4><div class="form-row"><label>Full name<input name="full_name" required placeholder="Your full name"></label><label>Email<input type="email" name="email" required placeholder="you@example.com"></label></div><div class="form-row"><label>Phone<input name="phone" placeholder="Phone number"></label><label>Education<input name="education" placeholder="Qualification"></label></div><label>Relevant experience<textarea name="experience" rows="2" placeholder="Your experience"></textarea></label><label>Cover letter<textarea name="cover_letter" rows="3" placeholder="Why are you suitable for this role?"></textarea></label><label>CV / Resume (PDF, DOC, DOCX)<input type="file" name="cv" accept=".pdf,.doc,.docx"></label><button class="btn btn-primary" type="submit">Submit Application ↗</button></form></div></article>
+        <article class="vacancy reveal"><div><span class="vacancy-tag">OPEN POSITION</span><h3>{{ vacancy.title }}</h3><p>{{ vacancy.description }}</p><div class="vacancy-meta"><span> {{ vacancy.location or 'Ethiopia' }}</span><span> {{ vacancy.employment_type or 'Full Time' }}</span>{% if vacancy.closing_date %}<span>⏳ Closes {{ vacancy.closing_date }}</span>{% endif %}</div></div><div class="vacancy-requirements"><strong>Requirements</strong><p>{{ vacancy.requirements or 'See vacancy description.' }}</p><form class="application-form" action="{{ url_for('apply_vacancy', vacancy_id=vacancy.id) }}" method="post" enctype="multipart/form-data"><h4>Apply for this position</h4><div class="form-row"><label>Full name<input name="full_name" required placeholder="Your full name"></label><label>Email<input type="email" name="email" required placeholder="you@example.com"></label></div><div class="form-row"><label>Phone<input name="phone" placeholder="Phone number"></label><label>Education<input name="education" placeholder="Qualification"></label></div><label>Relevant experience<textarea name="experience" rows="2" placeholder="Your experience"></textarea></label><label>Cover letter<textarea name="cover_letter" rows="3" placeholder="Why are you suitable for this role?"></textarea></label><label>CV / Resume (PDF, DOC, DOCX)<input type="file" name="cv" accept=".pdf,.doc,.docx"></label><button class="btn btn-primary" type="submit">Submit Application ↗</button></form></div></article>
         {% endfor %}
       {% else %}
-        <article class="vacancy empty-vacancy reveal"><div><span class="vacancy-tag">CAREERS</span><h3>No current vacancies</h3><p>New opportunities will be posted here when available.</p></div><div class="vacancy-icon">👷</div></article>
+        <article class="vacancy empty-vacancy reveal"><div><span class="vacancy-tag">CAREERS</span><h3>No current vacancies</h3><p>New opportunities will be posted here when available.</p></div><div class="vacancy-icon"></div></article>
       {% endif %}
     </div>
   </div>
@@ -141,13 +141,13 @@
 
 <section id="contact" class="section-pad contact-section">
   <div class="container contact-grid">
-    <div class="contact-copy reveal"><div class="eyebrow"><span></span> 📍 CONTACT KPME PLC</div><h2>{{ settings.get("contact_heading", "Let's build something remarkable.") }}</h2><p>{{ settings.get("contact_text", "Tell us about your construction, fountain or finishing project.") }}</p><div class="contact-details"><div><span>📍</span><p><strong>Location</strong><br>{{ settings.get("contact_location", "Ethiopia") }}</p></div><div><span>✉️</span><p><strong>Email</strong><br>{{ settings.get("contact_email", "info@kpmeplc.com") }}</p></div><div><span>☎️</span><p><strong>Phone</strong><br>{{ settings.get("contact_phone", "+251 XXX XXX XXX") }}</p></div></div><div class="social-links"><strong>🌐 Connect with us</strong>{% for key,label,icon in [('social_facebook','Facebook','📘'),('social_instagram','Instagram','📸'),('social_linkedin','LinkedIn','💼'),('social_telegram','Telegram','✈️'),('social_youtube','YouTube','▶️'),('social_tiktok','TikTok','🎵')] %}{% if settings.get(key) %}<a href="{{ settings.get(key) }}" target="_blank" rel="noopener noreferrer">{{ icon }} {{ label }}</a>{% endif %}{% endfor %}</div></div>
+    <div class="contact-copy reveal"><div class="eyebrow"><span></span>  CONTACT KPME PLC</div><h2>{{ settings.get("contact_heading", "Let's build something remarkable.") }}</h2><p>{{ settings.get("contact_text", "Tell us about your construction, fountain or finishing project.") }}</p><div class="contact-details"><div><span></span><p><strong>Location</strong><br>{{ settings.get("contact_location", "Ethiopia") }}</p></div><div><span></span><p><strong>Email</strong><br>{{ settings.get("contact_email", "info@kpmeplc.com") }}</p></div><div><span></span><p><strong>Phone</strong><br>{{ settings.get("contact_phone", "+251 XXX XXX XXX") }}</p></div></div><div class="social-links"><strong> Connect with us</strong>{% for key,label,icon in [('social_facebook','Facebook',''),('social_instagram','Instagram',''),('social_linkedin','LinkedIn',''),('social_telegram','Telegram',''),('social_youtube','YouTube','▶️'),('social_tiktok','TikTok','')] %}{% if settings.get(key) %}<a href="{{ settings.get(key) }}" target="_blank" rel="noopener noreferrer">{{ icon }} {{ label }}</a>{% endif %}{% endfor %}</div></div>
     <form class="contact-form reveal reveal-delay" action="{{ url_for('contact') }}" method="post"><div class="form-row"><label>Name<input name="name" required placeholder="Your name"></label><label>Phone<input name="phone" placeholder="Your phone"></label></div><label>Email<input type="email" name="email" placeholder="you@example.com"></label><label>Message<textarea name="message" required rows="6" placeholder="Tell us about your project..."></textarea></label><button class="btn btn-primary" type="submit">Send Message <span>↗</span></button></form>
   </div>
 </section>
 </main>
 
-<footer class="footer"><div class="container footer-grid"><div><a class="brand" href="#top"><span class="brand-mark">K</span><span><strong>KPME</strong><small>PLC</small></span></a><p>Construction · Fountain Works · Finishing Works</p></div><div class="footer-links"><a href="#about">About</a><a href="#services">Services</a><a href="#projects">Projects</a><a href="#news">News</a><a href="#vacancies">Vacancies</a><a href="#contact">Contact</a></div></div><div class="container footer-social">{% for key,label,icon in [('social_facebook','Facebook','📘'),('social_instagram','Instagram','📸'),('social_linkedin','LinkedIn','💼'),('social_telegram','Telegram','✈️'),('social_youtube','YouTube','▶️'),('social_tiktok','TikTok','🎵')] %}{% if settings.get(key) %}<a href="{{ settings.get(key) }}" target="_blank" rel="noopener noreferrer">{{ icon }} {{ label }}</a>{% endif %}{% endfor %}</div><div class="container footer-bottom"><span>© {{ current_year }} KPME PLC. All rights reserved.</span><span>Designed for a modern construction company.</span></div></footer>
+<footer class="footer"><div class="container footer-grid"><div><a class="brand" href="#top"><span class="brand-mark">K</span><span><strong>KPME</strong><small>PLC</small></span></a><p>Construction · Fountain Works · Finishing Works</p></div><div class="footer-links"><a href="#about">About</a><a href="#services">Services</a><a href="#projects">Projects</a><a href="#news">News</a><a href="#vacancies">Vacancies</a><a href="#contact">Contact</a></div></div><div class="container footer-social">{% for key,label,icon in [('social_facebook','Facebook',''),('social_instagram','Instagram',''),('social_linkedin','LinkedIn',''),('social_telegram','Telegram',''),('social_youtube','YouTube','▶️'),('social_tiktok','TikTok','')] %}{% if settings.get(key) %}<a href="{{ settings.get(key) }}" target="_blank" rel="noopener noreferrer">{{ icon }} {{ label }}</a>{% endif %}{% endfor %}</div><div class="container footer-bottom"><span>© {{ current_year }} KPME PLC. All rights reserved.</span><span>Designed for a modern construction company.</span></div></footer>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}<div class="toast-stack">{% for category, message in messages %}<div class="toast {{ category }}">{{ message }}<button onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}

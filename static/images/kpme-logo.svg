@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 160" role="img" aria-labelledby="title desc">
+<title id="title">KPME PLC</title><desc id="desc">KPME PLC construction company wordmark in gold and white.</desc>
+<defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2d18b"/><stop offset="1" stop-color="#c18b32"/></linearGradient></defs>
+<rect x="3" y="3" width="154" height="154" rx="22" fill="#0a0d0f" stroke="url(#gold)" stroke-width="5"/>
+<path d="M36 117V42h17v31l27-31h21L69 79l34 38H81L53 84v33z" fill="url(#gold)"/>
+<path d="M108 117V42h15l17 28 17-28h0v75h-16V72l-17 26-16-26v45z" fill="#f2f4f5" transform="translate(-5 0) scale(.92 1)"/>
+<text x="181" y="86" fill="#f4f5f6" font-family="Montserrat, Arial, sans-serif" font-size="62" font-weight="800" letter-spacing="1">KPME</text>
+<rect x="184" y="101" width="286" height="3" fill="url(#gold)"/>
+<text x="186" y="136" fill="#d7b36b" font-family="Montserrat, Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="11">PLC</text>
+</svg>

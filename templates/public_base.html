@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="site-header" id="top"><div class="container nav-wrap">
+  <a class="brand" href="{{ url_for('home') }}" aria-label="KPME PLC home">
+    {% if site_logo %}<img class="brand-logo" src="{{ url_for('uploaded_file', filename=site_logo) }}" alt="KPME PLC logo">{% else %}<img class="brand-logo" src="{{ url_for('static', filename='images/kpme-logo.svg') }}" alt="KPME PLC logo">{% endif %}
+    <span><strong>KPME</strong><small>PLC</small></span>
+  </a>
+  <button class="menu-toggle" aria-label="Open menu">Menu</button>
+  <nav class="nav-links"><a href="{{ url_for('home') }}">Home</a><a href="{{ url_for('about_page') }}">About</a><a href="{{ url_for('services_page') }}">Services</a><a href="{{ url_for('projects_page') }}">Projects</a><a href="{{ url_for('news_page') }}">News</a><a href="{{ url_for('vacancies_page') }}">Vacancies</a><a href="{{ url_for('contact_page') }}" class="nav-contact">Contact</a></nav>
+</div></header>
+<main>{% block page_content %}{% endblock %}</main>
+<footer class="footer"><div class="container footer-grid"><div><a class="brand" href="{{ url_for('home') }}">{% if site_logo %}<img class="brand-logo" src="{{ url_for('uploaded_file', filename=site_logo) }}" alt="KPME PLC logo">{% else %}<img class="brand-logo" src="{{ url_for('static', filename='images/kpme-logo.svg') }}" alt="KPME PLC logo">{% endif %}<span><strong>KPME</strong><small>PLC</small></span></a><p>Construction, fountain works and finishing solutions.</p></div><nav class="footer-links"><a href="{{ url_for('about_page') }}">About</a><a href="{{ url_for('services_page') }}">Services</a><a href="{{ url_for('projects_page') }}">Projects</a><a href="{{ url_for('news_page') }}">News</a><a href="{{ url_for('vacancies_page') }}">Vacancies</a><a href="{{ url_for('contact_page') }}">Contact</a></nav></div>
+<div class="container footer-social">{% for key,label in [('social_facebook','Facebook'),('social_instagram','Instagram'),('social_linkedin','LinkedIn'),('social_telegram','Telegram'),('social_youtube','YouTube'),('social_tiktok','TikTok')] %}{% if settings.get(key) %}<a href="{{ settings.get(key) }}" target="_blank" rel="noopener noreferrer">{{ label }}</a>{% endif %}{% endfor %}</div>
+<div class="container footer-bottom"><span>© {{ current_year }} KPME PLC. All rights reserved.</span><span>Quality · Detail · Delivery</span></div></footer>
+{% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="toast-stack">{% for category,message in messages %}<div class="toast {{ category }}">{{ message }}<button onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}{% endwith %}
+{% endblock %}

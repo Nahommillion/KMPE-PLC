@@ -96,11 +96,14 @@ def init_database():
         columns = {row[1] for row in db.execute(f"PRAGMA table_info({table})").fetchall()}
         if "images_json" not in columns:
             db.execute(f"ALTER TABLE {table} ADD COLUMN images_json TEXT DEFAULT '[]'")
+    project_columns = {row[1] for row in db.execute("PRAGMA table_info(projects)").fetchall()}
+    if "status" not in project_columns:
+        db.execute("ALTER TABLE projects ADD COLUMN status TEXT DEFAULT 'Completed'")
     db.execute("""CREATE TABLE IF NOT EXISTS services (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         description TEXT,
-        icon TEXT DEFAULT '🛠️',
+        icon TEXT DEFAULT '',
         enabled INTEGER DEFAULT 1,
         created_at TEXT NOT NULL
     )""")
@@ -122,10 +125,10 @@ def init_database():
         db.execute("INSERT OR IGNORE INTO settings(setting_key,setting_value) VALUES(?,?)", (key, value))
     if db.execute("SELECT COUNT(*) FROM services").fetchone()[0] == 0:
         seed_services = [
-            ("Fountain Works", "Fountain construction, water features and related installations.", "💧", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-            ("Finishing Works", "Interior and exterior finishing, surfaces and detailed workmanship.", "🎨", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-            ("Construction Works", "General construction and coordinated civil works.", "🏗️", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-            ("Special Works", "Specialized works tailored to client needs.", "🧱", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            ("Fountain Works", "Fountain construction, water features and related installations.", "", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            ("Finishing Works", "Interior and exterior finishing, surfaces and detailed workmanship.", "", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            ("Construction Works", "General construction and coordinated civil works.", "", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            ("Special Works", "Specialized works tailored to client needs.", "", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
         ]
         db.executemany("INSERT INTO services(title,description,icon,enabled,created_at) VALUES(?,?,?,?,?)", seed_services)
     db.commit()
@@ -204,22 +207,100 @@ def admin_required(view):
 
 @app.context_processor
 def inject_globals():
-    return {"current_year": datetime.now().year}
+    return {"current_year": datetime.now().year, "site_logo": public_settings().get("logo_filename", "") if request else ""}
+
+
+def public_settings():
+    db = get_db()
+    return {r["setting_key"]: r["setting_value"] for r in db.execute("SELECT setting_key,setting_value FROM settings").fetchall()}
+
+
+def public_services():
+    return get_db().execute("SELECT * FROM services WHERE enabled=1 ORDER BY id").fetchall()
+
+
+def public_projects(limit=None):
+    sql = "SELECT * FROM projects ORDER BY id DESC"
+    if limit:
+        sql += " LIMIT ?"
+        rows = get_db().execute(sql, (limit,)).fetchall()
+    else:
+        rows = get_db().execute(sql).fetchall()
+    return enrich_gallery(rows)
 
 
 @app.route("/")
 def home():
     db = get_db()
-    projects = enrich_gallery(db.execute("SELECT * FROM projects ORDER BY id DESC LIMIT 6").fetchall())
+    projects = public_projects(12)
     news = enrich_gallery(db.execute("SELECT * FROM news WHERE published=1 ORDER BY id DESC LIMIT 3").fetchall())
-    services = db.execute("SELECT * FROM services WHERE enabled=1 ORDER BY id").fetchall()
+    services = public_services()
     vacancies = db.execute("SELECT * FROM vacancies WHERE published=1 ORDER BY id DESC LIMIT 3").fetchall()
-    settings = {r["setting_key"]: r["setting_value"] for r in db.execute("SELECT setting_key,setting_value FROM settings").fetchall()}
-    return render_template("index.html", projects=projects, news=news, vacancies=vacancies, settings=settings, services=services)
+    settings = public_settings()
+    slides = []
+    for project in projects:
+        for photo in project["gallery"]:
+            slides.append({"filename": photo, "title": project["title"], "description": project["description"], "status": project.get("status") or "Completed"})
+    return render_template("home.html", projects=projects, news=news, vacancies=vacancies, settings=settings, services=services, slides=slides[:16])
 
 
-# Compatibility endpoint: some existing templates refer to url_for("index").
-# Keep the canonical home endpoint while allowing both endpoint names.
+@app.route("/about")
+def about_page():
+    return render_template("about.html", settings=public_settings())
+
+
+@app.route("/services")
+def services_page():
+    return render_template("services.html", services=public_services(), settings=public_settings())
+
+
+@app.route("/projects")
+def projects_page():
+    status = request.args.get("status", "All").strip()
+    valid_statuses = ["Completed", "Ongoing", "Pending", "Other"]
+    projects = public_projects()
+    if status in valid_statuses:
+        projects = [p for p in projects if (p.get("status") or "Completed").lower() == status.lower()]
+    elif status != "All":
+        status = "All"
+    return render_template("projects.html", projects=projects, status=status, statuses=valid_statuses, settings=public_settings())
+
+
+@app.route("/projects/<int:project_id>")
+def project_detail(project_id):
+    row = get_db().execute("SELECT * FROM projects WHERE id=?", (project_id,)).fetchone()
+    if not row:
+        return redirect(url_for("projects_page"))
+    project = enrich_gallery([row])[0]
+    return render_template("project_detail.html", project=project, settings=public_settings())
+
+
+@app.route("/news")
+def news_page():
+    rows = get_db().execute("SELECT * FROM news WHERE published=1 ORDER BY id DESC").fetchall()
+    return render_template("news.html", news=enrich_gallery(rows), settings=public_settings())
+
+
+@app.route("/news/<int:news_id>")
+def news_detail(news_id):
+    row = get_db().execute("SELECT * FROM news WHERE id=? AND published=1", (news_id,)).fetchone()
+    if not row:
+        return redirect(url_for("news_page"))
+    return render_template("news_detail.html", item=enrich_gallery([row])[0], settings=public_settings())
+
+
+@app.route("/vacancies")
+def vacancies_page():
+    vacancies = get_db().execute("SELECT * FROM vacancies WHERE published=1 ORDER BY id DESC").fetchall()
+    return render_template("vacancies.html", vacancies=vacancies, settings=public_settings())
+
+
+@app.route("/contact")
+def contact_page():
+    return render_template("contact.html", settings=public_settings())
+
+
+# Compatibility endpoint for legacy templates and existing links.
 app.add_url_rule("/", endpoint="index", view_func=home)
 
 
@@ -236,12 +317,12 @@ def contact():
     message = request.form.get("message", "").strip()
     if not name or not message:
         flash("Please enter your name and message.", "error")
-        return redirect(url_for("home") + "#contact")
+        return redirect(url_for("contact_page"))
     db = get_db()
     db.execute("INSERT INTO messages(name,email,phone,message,is_read,created_at) VALUES(?,?,?,?,?,?)", (name, email, phone, message, 0, now()))
     db.commit()
     flash("Thank you. Your message has been received.", "success")
-    return redirect(url_for("home") + "#contact")
+    return redirect(url_for("contact_page"))
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -287,20 +368,20 @@ def apply_vacancy(vacancy_id):
     email = request.form.get("email", "").strip()
     if not vacancy or not full_name or not email:
         flash("Please provide your full name and email to apply.", "error")
-        return redirect(url_for("home") + "#vacancies")
+        return redirect(url_for("vacancies_page"))
     cv = request.files.get("cv")
     cv_filename = None
     if cv and cv.filename:
         if cv.filename.rsplit(".", 1)[-1].lower() not in {"pdf", "doc", "docx"}:
             flash("CV must be a PDF, DOC, or DOCX file.", "error")
-            return redirect(url_for("home") + "#vacancies")
+            return redirect(url_for("vacancies_page"))
         ext = secure_filename(cv.filename).rsplit(".", 1)[-1].lower()
         cv_filename = f"{uuid.uuid4().hex}.{ext}"
         cv.save(os.path.join(UPLOAD_DIR, cv_filename))
     db.execute("INSERT INTO applications(vacancy_id,full_name,email,phone,education,experience,cover_letter,cv_filename,created_at) VALUES(?,?,?,?,?,?,?,?,?)", (vacancy_id, full_name, email, request.form.get("phone", "").strip(), request.form.get("education", "").strip(), request.form.get("experience", "").strip(), request.form.get("cover_letter", "").strip(), cv_filename, now()))
     db.commit()
     flash("Your application has been submitted successfully.", "success")
-    return redirect(url_for("home") + "#vacancies")
+    return redirect(url_for("vacancies_page"))
 
 
 @app.route("/admin/logout")
@@ -330,13 +411,16 @@ def add_project():
     title = request.form.get("title", "").strip()
     category = request.form.get("category", "").strip()
     description = request.form.get("description", "").strip()
+    status = request.form.get("status", "Completed").strip()
+    if status not in {"Completed", "Ongoing", "Pending", "Other"}:
+        status = "Other"
     images = save_uploaded_images(request.files.getlist("images"))
     image = images[0] if images else None
     if not title:
         flash("Project title is required.", "error")
         return redirect(url_for("admin_dashboard"))
     db = get_db()
-    db.execute("INSERT INTO projects(title,category,description,image,images_json,created_at) VALUES(?,?,?,?,?,?)", (title, category, description, image, json.dumps(images), now()))
+    db.execute("INSERT INTO projects(title,category,description,image,images_json,status,created_at) VALUES(?,?,?,?,?,?,?)", (title, category, description, image, json.dumps(images), status, now()))
     db.commit()
     flash("Project added successfully.", "success")
     return redirect(url_for("admin_dashboard"))
@@ -453,7 +537,7 @@ def service_detail(service_id):
 def add_service():
     title = request.form.get("title", "").strip()
     description = request.form.get("description", "").strip()
-    icon = request.form.get("icon", "🛠️").strip() or "🛠️"
+    icon = ""
     enabled = 1 if request.form.get("enabled") else 0
     if not title:
         flash("Service name is required.", "error")
