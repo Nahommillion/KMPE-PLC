@@ -9,6 +9,13 @@
   <nav class="nav-links"><a href="{{ url_for('home') }}">Home</a><a href="{{ url_for('about_page') }}">About Us</a><a href="{{ url_for('services_page') }}">Services</a><a href="{{ url_for('projects_page') }}">Projects</a><a href="{{ url_for('news_page') }}">News</a><a href="{{ url_for('vacancies_page') }}">Vacancy</a><a href="{{ url_for('tender_page') }}">Tender</a><a href="{{ url_for('media_page') }}">Media</a><a href="{{ url_for('contact_page') }}" class="nav-contact">Contact</a></nav>
 </div></header>
 <main>{% block page_content %}{% endblock %}</main>
+{% if request.endpoint == 'home' %}
+<footer class="footer home-compact-footer"><div class="container home-footer-row">
+  <a class="brand" href="{{ url_for('home') }}">{% if site_logo %}<img class="brand-logo" src="{{ url_for('uploaded_file', filename=site_logo) }}" alt="KPME PLC logo">{% else %}<img class="brand-logo" src="{{ url_for('static', filename='images/kpme-logo.svg') }}" alt="KPME PLC logo">{% endif %}<span class="brand-name"><strong>KPME PLC</strong><small>CONSTRUCTION &amp; FINISHING</small></span></a>
+  <div class="footer-social">{% for key,label in [('social_facebook','Facebook'),('social_instagram','Instagram'),('social_linkedin','LinkedIn'),('social_telegram','Telegram'),('social_youtube','YouTube'),('social_tiktok','TikTok')] %}{% if settings.get(key) %}<a href="{{ settings.get(key) }}" target="_blank" rel="noopener noreferrer">{{ label }}</a>{% endif %}{% endfor %}</div>
+  <div class="footer-bottom"><span>© {{ current_year }} KPME PLC. All rights reserved.</span></div>
+</div></footer>
+{% else %}
 <footer class="footer"><div class="container footer-grid">
   <div class="footer-company"><a class="brand" href="{{ url_for('home') }}">{% if site_logo %}<img class="brand-logo" src="{{ url_for('uploaded_file', filename=site_logo) }}" alt="KPME PLC logo">{% else %}<img class="brand-logo" src="{{ url_for('static', filename='images/kpme-logo.svg') }}" alt="KPME PLC logo">{% endif %}<span class="brand-name"><strong>KPME PLC</strong><small>CONSTRUCTION &amp; FINISHING</small></span></a><p>Fountain works, finishing works and construction solutions delivered with precision, craftsmanship and a modern vision.</p></div>
   <div class="footer-sitemap"><h3>Site Map</h3><nav class="footer-links"><a href="{{ url_for('home') }}">Home</a><a href="{{ url_for('about_page') }}">About Us</a><a href="{{ url_for('vision_page') }}">Vision</a><a href="{{ url_for('mission_page') }}">Mission</a><a href="{{ url_for('values_page') }}">Values</a><a href="{{ url_for('services_page') }}">Services</a><a href="{{ url_for('projects_page') }}">Projects / Portfolio</a><a href="{{ url_for('news_page') }}">News</a><a href="{{ url_for('vacancies_page') }}">Vacancy</a><a href="{{ url_for('tender_page') }}">Tender</a><a href="{{ url_for('media_page') }}">Media / Gallery</a><a href="{{ url_for('contact_page') }}">Contact Us</a></nav></div>
@@ -17,5 +24,6 @@
 </div>
 <div class="container footer-social">{% for key,label in [('social_facebook','Facebook'),('social_instagram','Instagram'),('social_linkedin','LinkedIn'),('social_telegram','Telegram'),('social_youtube','YouTube'),('social_tiktok','TikTok')] %}{% if settings.get(key) %}<a href="{{ settings.get(key) }}" target="_blank" rel="noopener noreferrer">{{ label }}</a>{% endif %}{% endfor %}</div>
 <div class="container footer-bottom"><span>© {{ current_year }} KPME PLC. All rights reserved.</span><span>Quality · Detail · Delivery</span></div></footer>
+{% endif %}
 {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="toast-stack">{% for category,message in messages %}<div class="toast {{ category }}">{{ message }}<button onclick="this.parentElement.remove()">×</button></div>{% endfor %}</div>{% endif %}{% endwith %}
 {% endblock %}

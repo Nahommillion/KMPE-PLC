@@ -41,3 +41,60 @@
 .footer-recent-news a{color:#b8c0c4;text-decoration:none;}
 .footer-recent-news a:hover{color:var(--accent);}
 .footer-recent-news .footer-all-news{display:inline-block;margin-top:7px;font-size:11px;font-weight:700;color:var(--accent);}
+
+/* Homepage intentionally focuses on completed-project photographs and published news. */
+.home-project-gallery{padding-top:145px;min-height:0;}
+.home-project-gallery .section-heading{margin-bottom:28px;}
+.home-project-gallery .section-heading h1{font:800 clamp(38px,5vw,68px)/1.05 Montserrat,sans-serif;letter-spacing:-.045em;margin-top:17px;}
+.home-recent-news{padding-top:65px;}
+.home-compact-footer{padding-top:25px;padding-bottom:18px;}
+.home-footer-row{display:flex;align-items:center;justify-content:space-between;gap:22px;flex-wrap:wrap;}
+.home-footer-row .footer-social{margin:0;padding:0;}
+.home-footer-row .footer-bottom{margin:0;padding:0;border:0;}
+@media(max-width:600px){.home-project-gallery{padding-top:120px}.home-footer-row{display:flex;flex-direction:column;align-items:flex-start;gap:16px}.home-footer-row .footer-social{padding:0}}
+
+/* Final branding scale: dominant logo and company name, quieter navigation, all public pages */
+.site-header .nav-wrap{height:126px;gap:22px;}
+.site-header .brand{gap:17px;flex-shrink:0;}
+.site-header .brand-logo{width:100px;height:100px;}
+.site-header .brand-name strong{font-size:31px;letter-spacing:.075em;line-height:1.05;}
+.site-header .brand-name small{font-size:10px;letter-spacing:.19em;margin-top:7px;}
+.site-header .nav-links{gap:13px;}
+.site-header .nav-links a{font-size:10px;letter-spacing:.015em;}
+.site-header .nav-contact{padding:7px 11px;}
+/* Keep the homepage project slideshow prominent and automatically rotating. */
+.home-project-gallery{padding-top:165px;}
+.home-project-gallery .focus-gallery{height:clamp(390px,58vw,690px);}
+.focus-gallery .hero-slide>img{object-fit:cover;}
+/* Interior pages share the same large brand header, with their content starting below it. */
+.page-hero{padding-top:185px;}
+@media(max-width:1200px){
+ .site-header .nav-wrap{height:112px;}
+ .site-header .brand-logo{width:82px;height:82px;}
+ .site-header .brand-name strong{font-size:27px;}
+ .site-header .brand-name small{font-size:9px;letter-spacing:.15em;}
+ .site-header .nav-links{gap:9px;}
+ .site-header .nav-links a{font-size:9px;}
+ .home-project-gallery{padding-top:145px;}
+ .page-hero{padding-top:165px;}
+}
+@media(max-width:900px){
+ .site-header .nav-wrap{height:96px;}
+ .site-header .brand{gap:12px;}
+ .site-header .brand-logo{width:72px;height:72px;}
+ .site-header .brand-name strong{font-size:24px;}
+ .site-header .brand-name small{font-size:8px;letter-spacing:.12em;}
+ .site-header .nav-links{top:96px;}
+ .home-project-gallery{padding-top:125px;}
+ .page-hero{padding-top:145px;}
+}
+@media(max-width:600px){
+ .site-header .nav-wrap{height:88px;}
+ .site-header .brand-logo{width:64px;height:64px;}
+ .site-header .brand-name strong{font-size:21px;letter-spacing:.055em;}
+ .site-header .brand-name small{font-size:7px;letter-spacing:.1em;margin-top:5px;}
+ .site-header .nav-links{top:88px;}
+ .home-project-gallery{padding-top:112px;}
+ .home-project-gallery .focus-gallery{height:340px;}
+ .page-hero{padding-top:130px;}
+}
