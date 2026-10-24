@@ -31,7 +31,7 @@ The included `render.yaml` uses `/var/data` for the SQLite database and uploaded
 1. Sign in at `/login`.
 2. Upload the company logo in Website Content. The logo is used in the login screen, public header/footer and admin sidebar.
 3. Add services and choose whether they are visible.
-4. Add projects with a category, description, status and multiple images. Visitors can open each project and step through its photo gallery. Home automatically rotates through uploaded project images.
+4. Add projects with a category, description, status and multiple images. Visitors can open each project and step through its photo gallery. The homepage “Our work in focus” slideshow automatically rotates through images from projects marked Completed.
 5. Publish news with multiple images and manage vacancies and contact messages.
 6. Add social URLs in Website Content; valid links appear on the Contact page and in the site footer.
 
@@ -41,6 +41,6 @@ The generated SVG wordmark at `static/images/kpme-logo.svg` is the default until
 - `/vision`, `/mission`, and `/values` are individual company-information pages. Their headings and descriptions can be edited from **Admin > Website Editor**.
 - `/tender` is the public tenders/procurement information page; its heading and description are editable from the admin panel.
 - `/media` automatically displays uploaded project and published-news photographs.
-- The home page has both an automatic featured-project slideshow and a continuously moving project-photo ribbon. Add project images from **Admin > Projects & Gallery** to populate both.
+- The home page has a static branded hero followed by the “Our work in focus” slideshow. This slideshow uses images only from projects marked **Completed** and changes automatically. Add photographs and mark the project status **Completed** in **Admin > Projects & Gallery** to populate it. The home page also includes a “Welcome to KPME PLC” introduction, recent news cards, a “Got a question?” contact section, and a footer with the site map, three latest news links, and contact details.
 
 If a service detail page previously returned an Internal Server Error, the detail route now passes the public settings required by the shared header/footer. Startup migrations also normalize the service table columns used by the current app.

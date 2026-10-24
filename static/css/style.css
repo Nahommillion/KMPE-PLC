@@ -13,3 +13,31 @@
 
 /* KPME PLC visibility and added company pages */
 .brand-logo{width:72px;height:72px}.brand-name strong{font-size:23px;letter-spacing:.1em;line-height:1.15}.brand-name small{font-size:9px;letter-spacing:.19em;margin-top:4px;color:#c1c7ca}.nav-wrap{height:94px}.site-header{background:rgba(7,9,11,.9)}.nav-links{gap:18px}.nav-links a{font-size:12px}.home-hero{padding-top:185px}.home-hero .eyebrow{font-size:11px}.home-hero .hero-copy:before{content:"KPME PLC";display:block;font:900 17px Montserrat,sans-serif;letter-spacing:.26em;color:var(--accent);margin-bottom:12px}.continuous-gallery{padding-top:55px;padding-bottom:80px;overflow:hidden}.photo-ribbon{overflow:hidden;width:100%;mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}.photo-ribbon-track{display:flex;gap:16px;width:max-content;animation:kpme-ribbon-scroll 55s linear infinite}.photo-ribbon:hover .photo-ribbon-track{animation-play-state:paused}.photo-ribbon-item{display:block;position:relative;width:280px;height:190px;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:0 0 auto}.photo-ribbon-item img{width:100%;height:100%;object-fit:cover;display:block}.photo-ribbon-item:after{content:"";position:absolute;inset:45% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.85))}.photo-ribbon-item span{position:absolute;z-index:1;bottom:12px;left:14px;right:14px;color:#fff;font-size:12px;font-weight:700}.photo-ribbon-empty{display:flex;gap:24px;align-items:center;justify-content:center;padding:24px;color:var(--muted)}.photo-ribbon-empty img{width:170px;height:120px;object-fit:cover;border-radius:8px}.company-pill-links{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0}.company-pill-links a{padding:10px 16px;border:1px solid var(--line);border-radius:30px;color:#e8ebec;text-decoration:none;font-size:12px}.company-pill-links a:hover{border-color:var(--accent);color:var(--accent)}.company-page-copy{white-space:pre-line}.media-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.media-card{overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.media-card>a{display:block;height:240px}.media-card img{display:block;width:100%;height:100%;object-fit:cover}.media-card>div{padding:17px}.media-card span{color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.15em}.media-card h3{margin:7px 0;font:700 17px Montserrat}.media-card p{font-size:12px;color:var(--muted)}@keyframes kpme-ribbon-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}@media(max-width:1100px){.nav-links{gap:11px}.nav-links a{font-size:11px}.brand-logo{width:62px;height:62px}.brand-name strong{font-size:20px}}@media(max-width:900px){.nav-wrap{height:80px}.brand-logo{width:50px;height:50px}.brand-name strong{font-size:18px}.nav-links{top:80px}.media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.home-hero{padding-top:130px}}@media(max-width:600px){.brand-logo{width:45px;height:45px}.brand-name strong{font-size:16px}.brand-name small{font-size:7px}.photo-ribbon-item{width:230px;height:160px}.media-grid{grid-template-columns:1fr}.photo-ribbon-empty{display:block;padding:15px}.photo-ribbon-empty img{width:100%;height:170px}}
+
+/* Homepage completed-project slideshow and expanded contact footer */
+.home-brand-visual .hero-frame{transform:none;aspect-ratio:1/1.06;}
+.home-brand-visual .hero-frame>img{opacity:.96;}
+.home-brand-visual .hero-badge{z-index:2;}
+.hero-badge span{display:block;font-size:9px;color:#aeb7bc;}
+.focus-gallery-section{padding-top:70px;padding-bottom:90px;background:linear-gradient(180deg,rgba(255,255,255,.015),transparent);}
+.focus-gallery-section .section-heading{margin-bottom:28px;}
+.focus-gallery{height:clamp(330px,55vw,610px);border-radius:16px;}
+.focus-gallery .hero-slide>img{object-fit:cover;}
+.focus-gallery .slide-caption{max-width:780px;}
+.focus-gallery .slide-caption p{max-width:720px;}
+.footer-grid{display:grid;grid-template-columns:1.05fr 1.2fr 1fr .95fr;align-items:start;gap:30px;}
+.footer-company .brand-logo{width:68px;height:68px;}
+.footer-company .brand-name strong{font-size:22px;}
+.footer-sitemap h3,.footer-contact h3{font:700 13px Montserrat,sans-serif;color:#e5e9eb;margin:7px 0 18px;}
+.footer-sitemap .footer-links{gap:12px 18px;}
+.footer-contact p{font-size:11px;line-height:1.8;color:#879197;margin:5px 0;}
+.footer-contact a,.contact-home-details a:not(.btn){color:#d7dde0;text-decoration:none;}
+.footer-contact a:hover,.contact-home-details a:not(.btn):hover{color:var(--accent);}
+@media(max-width:900px){.footer-grid{grid-template-columns:1fr 1fr;}.footer-company{grid-column:1/-1;}.focus-gallery{height:420px;}}
+@media(max-width:600px){.footer-grid{display:grid;grid-template-columns:1fr;gap:28px;}.footer-company{grid-column:auto;}.footer-company .brand-logo{width:54px;height:54px;}.focus-gallery{height:340px;}.focus-gallery-section{padding-top:55px;padding-bottom:65px;}}
+
+.footer-recent-news h3{font:700 13px Montserrat,sans-serif;color:#e5e9eb;margin:7px 0 18px;}
+.footer-recent-news p{font-size:11px;line-height:1.6;color:#879197;margin:0 0 12px;}
+.footer-recent-news a{color:#b8c0c4;text-decoration:none;}
+.footer-recent-news a:hover{color:var(--accent);}
+.footer-recent-news .footer-all-news{display:inline-block;margin-top:7px;font-size:11px;font-weight:700;color:var(--accent);}

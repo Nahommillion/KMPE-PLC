@@ -120,9 +120,9 @@ def init_database():
     db.execute("UPDATE services SET title='Service' WHERE title IS NULL OR trim(title)=''")
     db.execute("UPDATE services SET created_at=? WHERE created_at IS NULL OR trim(created_at)=''", (now(),))
     defaults = {
-        "about_heading": "Craftsmanship with a construction mindset.",
-        "about_text": "KPME PLC is a construction company focused on practical, high-quality execution across fountain works, finishing works and wider construction activities.",
-        "about_extra": "We showcase completed work, company news, career opportunities and make it easy for clients to contact our team.",
+        "about_heading": "Welcome to KPME PLC",
+        "about_text": "KPME PLC is an Ethiopian construction company delivering fountain works, finishing works and construction solutions. We focus on reliable execution, skilled workmanship and contributing to the development of quality built environments.",
+        "about_extra": "Our team brings together practical experience, careful planning and attention to detail. Explore our completed projects, company news, services and career opportunities, or contact us to discuss your next project.",
         "vision_heading": "Our Vision",
         "vision_text": "To be a trusted construction and finishing partner, recognized for quality, innovation and lasting value.",
         "mission_heading": "Our Mission",
@@ -143,6 +143,13 @@ def init_database():
     }
     for key, value in defaults.items():
         db.execute("INSERT OR IGNORE INTO settings(setting_key,setting_value) VALUES(?,?)", (key, value))
+    # Refresh only the old built-in copy; preserve anything edited by the site owner.
+    for key, old_value, new_value in (
+        ("about_heading", "Craftsmanship with a construction mindset.", defaults["about_heading"]),
+        ("about_text", "KPME PLC is a construction company focused on practical, high-quality execution across fountain works, finishing works and wider construction activities.", defaults["about_text"]),
+        ("about_extra", "We showcase completed work, company news, career opportunities and make it easy for clients to contact our team.", defaults["about_extra"]),
+    ):
+        db.execute("UPDATE settings SET setting_value=? WHERE setting_key=? AND setting_value=?", (new_value, key, old_value))
     if db.execute("SELECT COUNT(*) FROM services").fetchone()[0] == 0:
         seed_services = [
             ("Fountain Works", "Fountain construction, water features and related installations.", "", 1, datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
@@ -227,7 +234,19 @@ def admin_required(view):
 
 @app.context_processor
 def inject_globals():
-    return {"current_year": datetime.now().year, "site_logo": public_settings().get("logo_filename", "") if request else ""}
+    # Keep the footer's recent-news list current on every public page.
+    footer_recent_news = []
+    try:
+        footer_recent_news = get_db().execute(
+            "SELECT id, title FROM news WHERE published=1 ORDER BY id DESC LIMIT 3"
+        ).fetchall()
+    except sqlite3.Error:
+        footer_recent_news = []
+    return {
+        "current_year": datetime.now().year,
+        "site_logo": public_settings().get("logo_filename", "") if request else "",
+        "footer_recent_news": footer_recent_news,
+    }
 
 
 def public_settings():
@@ -252,16 +271,21 @@ def public_projects(limit=None):
 @app.route("/")
 def home():
     db = get_db()
-    projects = public_projects(12)
+    all_projects = public_projects()
+    projects = all_projects[:12]
     news = enrich_gallery(db.execute("SELECT * FROM news WHERE published=1 ORDER BY id DESC LIMIT 3").fetchall())
     services = public_services()
     vacancies = db.execute("SELECT * FROM vacancies WHERE published=1 ORDER BY id DESC LIMIT 3").fetchall()
     settings = public_settings()
     slides = []
-    for project in projects:
+    # The dedicated "Our work in focus" slideshow rotates only completed-project photographs.
+    for project in all_projects:
+        status = (project.get("status") or "Completed").strip().lower()
+        if status != "completed":
+            continue
         for photo in project["gallery"]:
-            slides.append({"filename": photo, "title": project["title"], "description": project["description"], "status": project.get("status") or "Completed"})
-    return render_template("home.html", projects=projects, news=news, vacancies=vacancies, settings=settings, services=services, slides=slides[:16])
+            slides.append({"filename": photo, "title": project["title"], "description": project["description"], "status": "Completed"})
+    return render_template("home.html", projects=projects, news=news, vacancies=vacancies, settings=settings, services=services, slides=slides[:48])
 
 
 @app.route("/about")
